@@ -1,15 +1,13 @@
 """Financial Modeling Agent - specializes in financial analysis and projections."""
-import os
-from openai import OpenAI
 from typing import Dict, Any
+from src.gpt5_wrapper import GPT5Wrapper
 
 
 class FinancialModelingAgent:
     """Specialized agent for financial modeling and analysis."""
 
     def __init__(self):
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        self.gpt5 = GPT5Wrapper()
         self.name = "financial_modeling_agent"
         self.description = "Specialized agent for financial modeling, ROI calculations, revenue projections, cost analysis, and financial planning."
 
@@ -65,17 +63,13 @@ Provide comprehensive financial analysis including:
 Use specific numbers and financial metrics where possible."""
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.7,
-                max_tokens=1500
+            return self.gpt5.generate(
+                input_text=user_prompt,
+                instructions=self.system_prompt,
+                reasoning_effort="medium",
+                text_verbosity="high",
+                max_output_tokens=1500
             )
-
-            return response.choices[0].message.content
 
         except Exception as e:
             return f"Error in financial modeling: {str(e)}"

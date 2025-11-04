@@ -5,3 +5,17 @@ colorama>=0.4.6
 fastapi>=0.109.0
 uvicorn>=0.27.0
 pydantic>=2.5.0
+
+# LangChain ecosystem
+langchain>=0.1.0
+langchain-openai>=0.0.5
+langgraph>=0.0.20
+langsmith>=0.0.77
+
+# Vector stores and embeddings
+chromadb>=0.4.22
+tiktoken>=0.5.2
+
+# Additional utilities
+aiohttp>=3.9.0
+asyncio>=3.4.3

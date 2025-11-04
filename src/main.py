@@ -5,20 +5,20 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
-from src.orchestrator import PrimaryOrchestrator
+from src.langgraph_orchestrator import LangGraphOrchestrator
+from src.config import Config
 
 # Load environment variables
 load_dotenv()
 
-# Verify API key is set
-if not os.getenv("OPENAI_API_KEY"):
-    raise ValueError("OPENAI_API_KEY environment variable is not set")
+# Validate configuration (raises error if OpenAI key missing)
+Config.validate()
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="Business Intelligence Orchestrator",
-    description="Multi-agent system for comprehensive business analysis",
-    version="1.0.0"
+    title="Business Intelligence Orchestrator v2",
+    description="LangGraph-powered multi-agent system with GPT-5, LangSmith tracing, and parallel execution",
+    version="2.0.0"
 )
 
 # Add CORS middleware
@@ -31,7 +31,7 @@ app.add_middleware(
 )
 
 # Initialize orchestrator
-orchestrator = PrimaryOrchestrator()
+orchestrator = LangGraphOrchestrator()
 
 
 # Pydantic models
@@ -51,9 +51,17 @@ class QueryResponse(BaseModel):
 async def root():
     """Root endpoint with API information."""
     return {
-        "name": "Business Intelligence Orchestrator",
-        "version": "1.0.0",
-        "description": "Multi-agent system for business analysis with specialized agents for market analysis, operations, finance, and lead generation",
+        "name": "Business Intelligence Orchestrator v2",
+        "version": "2.0.0",
+        "description": "LangGraph-powered multi-agent system with GPT-5, LangSmith tracing, and parallel execution",
+        "features": [
+            "GPT-5 Responses API with 40-80% cost reduction via caching",
+            "LangGraph state machine for intelligent routing",
+            "LangSmith tracing and monitoring",
+            "Parallel agent execution",
+            "Semantic routing (not keyword-based)"
+        ],
+        "agents": ["Market Analysis", "Operations Audit", "Financial Modeling", "Lead Generation"],
         "endpoints": {
             "/query": "POST - Submit a business query for analysis",
             "/history": "GET - Get conversation history",
@@ -112,7 +120,11 @@ async def health_check():
     """Health check endpoint."""
     return {
         "status": "healthy",
-        "openai_configured": bool(os.getenv("OPENAI_API_KEY"))
+        "openai_configured": bool(Config.OPENAI_API_KEY),
+        "openai_model": Config.OPENAI_MODEL,
+        "using_gpt5": Config.is_gpt5(),
+        "langsmith_tracing": Config.LANGCHAIN_TRACING_V2,
+        "langsmith_project": Config.LANGCHAIN_PROJECT if Config.LANGCHAIN_TRACING_V2 else None
     }
 
 

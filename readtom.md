@@ -1,3 +1,81 @@
+# Phase 1 Implementation: New Architecture
+
+## Enhanced Business Intelligence Orchestrator with GPT-5, LangGraph & LangSmith
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   User Input Layer                      │
+│              (CLI / FastAPI / Web UI)                   │
+└────────────────────┬────────────────────────────────────┘
+                     │
+┌─────────────────────────────────────────────────────────┐
+│                  LangSmith Layer                        │
+│         (Tracing, Evaluation, Monitoring)               │
+│    - Request/Response logging                           │
+│    - Token usage tracking                               │
+│    - Performance metrics                                │
+│    - Error tracking                                     │
+└────────────────────┬────────────────────────────────────┘
+                     │
+┌─────────────────────────────────────────────────────────┐
+│               LangGraph Orchestrator                    │
+│          (State Machine for Agent Routing)              │
+│                                                         │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐         │
+│  │  Router  │───>│ Parallel │───>│Synthesis │         │
+│  │   Node   │    │Execution │    │   Node   │         │
+│  │(Semantic)│    │  (Async) │    │ (GPT-5)  │         │
+│  └──────────┘    └──────────┘    └──────────┘         │
+│       │                                                 │
+│       └─> Determines which agents to invoke            │
+└────────────────────┬────────────────────────────────────┘
+                     │
+        ┌────────────┼────────────┬───────────────┐
+        ▼            ▼            ▼               ▼
+┌──────────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+│   Market     │ │Operations│ │ Financial│ │   Lead   │
+│   Agent      │ │  Agent   │ │  Agent   │ │   Gen    │
+│              │ │          │ │          │ │  Agent   │
+│  GPT-5-nano  │ │GPT-5-nano│ │GPT-5-nano│ │GPT-5-nano│
+│  Responses   │ │Responses │ │Responses │ │Responses │
+│     API      │ │   API    │ │   API    │ │   API    │
+└──────┬───────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘
+       │              │            │             │
+       └──────────────┴────────────┴─────────────┘
+                      │
+       ┌──────────────┴──────────────┐
+       ▼                             ▼
+┌─────────────────┐          ┌──────────────────┐
+│ Native GPT-5    │          │  LangChain Tools │
+│     Tools       │          │                  │
+│  - web_search   │          │  - Calculator    │
+│  - code_interp  │          │  - Custom tools  │
+│  - file_search  │          │                  │
+└─────────────────┘          └──────────────────┘
+
+Phase 2 Additions (Coming Next):
+       │
+       ┌──────────────┴────────
+       ──────┐
+       ▼                             ▼
+┌──────────────────┐        ┌──────────────────┐
+│  LangChain RAG   │        │  ML Models Layer │
+│  - Vector Store  │        │  - Reranker      │
+│  - Embeddings    │        │  - Classifier    │
+│  - Retrieval     │        │  - Fine-tuned    │
+└──────────────────┘        └──────────────────┘
+```
+
+## Key Improvements in Phase 1:
+
+1. **GPT-5-nano Responses API** (40-80% cost reduction via caching)
+2. **LangGraph State Machine** (parallel agent execution, explicit routing)
+3. **LangSmith Tracing** (full observability, token tracking, performance monitoring)
+4. **Native Tool Support** (web_search, code_interpreter built-in)
+5. **Async/Parallel Execution** (3-5x faster agent coordination)
+
+---
+
 ## Strategic Value Addition: Research Assistant → Business Intelligence Hybrid
 
 Your Business Intelligence Orchestrator is already **production-grade for ValtricAI consulting**—adding the Research Assistant layer transforms it into a **dual-purpose research + revenue tool** with clear differentiation. Here's the value architecture:
