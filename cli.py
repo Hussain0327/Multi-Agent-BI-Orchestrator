@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI interface for the Business Intelligence Orchestrator."""
+"""CLI interface for the Business Intelligence Orchestrator v2."""
 import os
 import sys
 from dotenv import load_dotenv
@@ -8,7 +8,8 @@ from colorama import init, Fore, Style
 # Add src to path
 sys.path.insert(0, os.path.dirname(__file__))
 
-from src.orchestrator import PrimaryOrchestrator
+from src.langgraph_orchestrator import LangGraphOrchestrator
+from src.config import Config
 
 # Initialize colorama for colored output
 init(autoreset=True)
@@ -16,10 +17,14 @@ init(autoreset=True)
 
 def print_banner():
     """Print the application banner."""
+    gpt5_status = "✓ GPT-5" if Config.is_gpt5() else f"GPT-4"
+    langsmith_status = "✓ LangSmith ON" if Config.LANGCHAIN_TRACING_V2 else "LangSmith OFF"
+
     banner = f"""
 {Fore.CYAN}{'='*70}
-{Fore.CYAN}  Business Intelligence Orchestrator - CLI
-{Fore.CYAN}  Multi-Agent System for Comprehensive Business Analysis
+{Fore.CYAN}  Business Intelligence Orchestrator v2 - CLI
+{Fore.CYAN}  LangGraph + GPT-5 + LangSmith Multi-Agent System
+{Fore.GREEN}  {gpt5_status} | {langsmith_status}
 {Fore.CYAN}{'='*70}{Style.RESET_ALL}
 """
     print(banner)
@@ -71,14 +76,24 @@ def main():
     # Load environment variables
     load_dotenv()
 
-    # Check for API key
-    if not os.getenv("OPENAI_API_KEY"):
-        print(f"{Fore.RED}Error: OPENAI_API_KEY not found in environment variables.{Style.RESET_ALL}")
+    # Validate configuration
+    try:
+        Config.validate()
+    except ValueError as e:
+        print(f"{Fore.RED}Error: {str(e)}{Style.RESET_ALL}")
         print(f"Please create a .env file with your OpenAI API key.")
         print(f"You can copy .env.example and fill in your key.")
         sys.exit(1)
 
     print_banner()
+
+    print(f"{Fore.WHITE}✨ New Features:{Style.RESET_ALL}")
+    print(f"  • {Fore.GREEN}LangGraph State Machine{Style.RESET_ALL}: Intelligent agent routing")
+    print(f"  • {Fore.GREEN}GPT-5 Responses API{Style.RESET_ALL}: 40-80% cost reduction via caching")
+    print(f"  • {Fore.GREEN}Semantic Routing{Style.RESET_ALL}: AI-powered (not keyword matching)")
+    if Config.LANGCHAIN_TRACING_V2:
+        print(f"  • {Fore.GREEN}LangSmith Tracing{Style.RESET_ALL}: Full observability in {Config.LANGCHAIN_PROJECT}")
+    print()
 
     print(f"{Fore.WHITE}Available specialized agents:{Style.RESET_ALL}")
     print(f"  • {Fore.GREEN}Market Analysis{Style.RESET_ALL}: Market research, trends, competition")
@@ -88,10 +103,11 @@ def main():
     print()
 
     # Initialize orchestrator
-    print(f"{Fore.YELLOW}Initializing orchestrator...{Style.RESET_ALL}")
+    print(f"{Fore.YELLOW}Initializing LangGraph orchestrator...{Style.RESET_ALL}")
     try:
-        orchestrator = PrimaryOrchestrator()
-        print(f"{Fore.GREEN}✓ Orchestrator ready!{Style.RESET_ALL}\n")
+        orchestrator = LangGraphOrchestrator()
+        print(f"{Fore.GREEN}✓ LangGraph orchestrator ready!{Style.RESET_ALL}")
+        print(f"{Fore.GREEN}✓ Model: {Config.OPENAI_MODEL}{Style.RESET_ALL}\n")
     except Exception as e:
         print(f"{Fore.RED}Error initializing orchestrator: {str(e)}{Style.RESET_ALL}")
         sys.exit(1)

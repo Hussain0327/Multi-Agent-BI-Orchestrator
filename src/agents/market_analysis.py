@@ -1,15 +1,13 @@
 """Market Analysis Agent - specializes in market research and competitive analysis."""
-import os
-from openai import OpenAI
 from typing import Dict, Any
+from src.gpt5_wrapper import GPT5Wrapper
 
 
 class MarketAnalysisAgent:
     """Specialized agent for market analysis, competitive research, industry trends."""
 
     def __init__(self):
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        self.gpt5 = GPT5Wrapper()
         self.name = "market_analysis_agent"
         self.description = "Specialized agent for market analysis, competitive research, industry trends, market sizing, and customer segmentation."
 
@@ -52,17 +50,13 @@ Always base your analysis on data and provide actionable insights."""
         user_prompt += "\n\nProvide actionable market insights and strategic recommendations."
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.7,
-                max_tokens=1500
+            return self.gpt5.generate(
+                input_text=user_prompt,
+                instructions=self.system_prompt,
+                reasoning_effort="medium",
+                text_verbosity="high",
+                max_output_tokens=1500
             )
-
-            return response.choices[0].message.content
 
         except Exception as e:
             return f"Error in market analysis: {str(e)}"
