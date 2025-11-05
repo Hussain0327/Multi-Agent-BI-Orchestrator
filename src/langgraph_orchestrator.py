@@ -97,37 +97,17 @@ class LangGraphOrchestrator:
         # Router → Research Synthesis (if RAG enabled) or directly to agents
         if self.enable_rag:
             workflow.add_edge("router", "research_synthesis")
-
-            # Research synthesis → First agent
-            workflow.add_conditional_edges(
-                "research_synthesis",
-                self._route_to_agents,
-                {
-                    "market": "market_agent",
-                    "operations": "operations_agent",
-                    "financial": "financial_agent",
-                    "leadgen": "leadgen_agent",
-                    "synthesis": "synthesis",
-                }
-            )
+            # Research synthesis → market agent (start of sequential chain)
+            workflow.add_edge("research_synthesis", "market_agent")
         else:
-            # Direct routing without research synthesis
-            workflow.add_conditional_edges(
-                "router",
-                self._route_to_agents,
-                {
-                    "market": "market_agent",
-                    "operations": "operations_agent",
-                    "financial": "financial_agent",
-                    "leadgen": "leadgen_agent",
-                    "synthesis": "synthesis",
-                }
-            )
+            # Direct routing without research synthesis → market agent
+            workflow.add_edge("router", "market_agent")
 
-        # All agents go to synthesis
-        workflow.add_edge("market_agent", "synthesis")
-        workflow.add_edge("operations_agent", "synthesis")
-        workflow.add_edge("financial_agent", "synthesis")
+        # Sequential agent execution (all agents run, each checks if needed)
+        # This fixes Bug #4: Now ALL agents in agents_to_call will execute
+        workflow.add_edge("market_agent", "operations_agent")
+        workflow.add_edge("operations_agent", "financial_agent")
+        workflow.add_edge("financial_agent", "leadgen_agent")
         workflow.add_edge("leadgen_agent", "synthesis")
 
         # Synthesis is the end
@@ -334,7 +314,7 @@ Provide an executive summary followed by detailed recommendations."""
 
         synthesis = self.gpt5.generate(
             input_text=synthesis_prompt,
-            reasoning_effort="high",  # High reasoning for synthesis
+            reasoning_effort="low",  # Fixed: "high" uses all tokens for reasoning, no output
             text_verbosity="high",
         )
 
