@@ -83,7 +83,7 @@ Use specific numbers and financial metrics where possible."""
             return self.gpt5.generate(
                 input_text=user_prompt,
                 instructions=self.system_prompt,
-                reasoning_effort="medium",
+                reasoning_effort="low",  # Fixed: "medium" uses all tokens for reasoning, no output
                 text_verbosity="high",
                 max_output_tokens=1500
             )

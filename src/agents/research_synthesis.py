@@ -131,7 +131,7 @@ Use this format:
         synthesis = self.gpt5.generate(
             input_text=synthesis_prompt,
             instructions=self.system_prompt,
-            reasoning_effort="high",      # Deep analysis of research
+            reasoning_effort="low",       # Fixed: "high" uses all tokens for reasoning, no output
             text_verbosity="high",        # Comprehensive synthesis
             max_output_tokens=1500
         )
