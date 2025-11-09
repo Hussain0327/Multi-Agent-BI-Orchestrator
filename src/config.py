@@ -1,4 +1,3 @@
-"""Configuration management for the Business Intelligence Orchestrator."""
 import os
 from dotenv import load_dotenv
 
@@ -7,7 +6,6 @@ load_dotenv()
 
 
 class Config:
-    """Central configuration for the application."""
 
     # OpenAI Configuration
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
