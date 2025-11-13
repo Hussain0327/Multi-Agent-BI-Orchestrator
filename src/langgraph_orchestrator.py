@@ -1,6 +1,6 @@
 """LangGraph-based orchestrator with state machine and parallel execution."""
 import asyncio
-from typing import Dict, Any, List, TypedDict, Annotated
+from typing import Dict, Any, List, TypedDict, Annotated, Literal
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage, AIMessage
 from langsmith import traceable
@@ -19,6 +19,7 @@ from src.config import Config
 class AgentState(TypedDict):
     """State object passed between nodes in the graph."""
     query: str
+    query_complexity: Literal["simple", "business", "complex"]
     agents_to_call: List[str]
     research_enabled: bool
     research_findings: Dict[str, Any]
@@ -97,45 +98,152 @@ class LangGraphOrchestrator:
         self.graph = self._build_graph()
 
     def _build_graph(self) -> StateGraph:
-        """Build the LangGraph state machine."""
+        """Build the LangGraph state machine with conditional routing."""
         workflow = StateGraph(AgentState)
 
         # Add nodes
+        workflow.add_node("complexity_classifier", self._complexity_classifier_node)
+        workflow.add_node("fast_answer", self._fast_answer_node)
         workflow.add_node("router", self._router_node)
 
-        # Add research synthesis node (RAG) if enabled
-        if self.enable_rag:
-            workflow.add_node("research_synthesis", self._research_synthesis_node)
+        # Add research synthesis node (always add, but it's a no-op if RAG disabled)
+        workflow.add_node("research_synthesis", self._research_synthesis_node)
 
-        workflow.add_node("market_agent", self._market_agent_node)
-        workflow.add_node("operations_agent", self._operations_agent_node)
-        workflow.add_node("financial_agent", self._financial_agent_node)
-        workflow.add_node("leadgen_agent", self._leadgen_agent_node)
+        # Add parallel agent execution node
+        workflow.add_node("parallel_agents", self._parallel_agents_node)
         workflow.add_node("synthesis", self._synthesis_node)
 
         # Set entry point
-        workflow.set_entry_point("router")
+        workflow.set_entry_point("complexity_classifier")
 
-        # Router → Research Synthesis (if RAG enabled) or directly to agents
-        if self.enable_rag:
-            workflow.add_edge("router", "research_synthesis")
-            # Research synthesis → market agent (start of sequential chain)
-            workflow.add_edge("research_synthesis", "market_agent")
-        else:
-            # Direct routing without research synthesis → market agent
-            workflow.add_edge("router", "market_agent")
+        # Conditional routing based on query complexity
+        workflow.add_conditional_edges(
+            "complexity_classifier",
+            self._route_by_complexity,
+            {
+                "simple": "fast_answer",
+                "business": "router",
+                "complex": "router",
+            }
+        )
 
-        # Sequential agent execution (all agents run, each checks if needed)
-        # This fixes Bug #4: Now ALL agents in agents_to_call will execute
-        workflow.add_edge("market_agent", "operations_agent")
-        workflow.add_edge("operations_agent", "financial_agent")
-        workflow.add_edge("financial_agent", "leadgen_agent")
-        workflow.add_edge("leadgen_agent", "synthesis")
+        # Fast answer goes directly to END
+        workflow.add_edge("fast_answer", END)
+
+        # Router goes to research (if complex) or directly to agents
+        workflow.add_conditional_edges(
+            "router",
+            self._route_after_router,
+            {
+                "research": "research_synthesis",
+                "agents": "parallel_agents",
+            }
+        )
+
+        # Research synthesis → parallel agents (always exists, but may be no-op)
+        workflow.add_edge("research_synthesis", "parallel_agents")
+
+        # Parallel agents → synthesis
+        workflow.add_edge("parallel_agents", "synthesis")
 
         # Synthesis is the end
         workflow.add_edge("synthesis", END)
 
         return workflow.compile()
+
+    @traceable(name="complexity_classifier")
+    def _complexity_classifier_node(self, state: AgentState) -> AgentState:
+        """
+        Classify query complexity to determine routing strategy.
+
+        - simple: Non-business questions (e.g., "what's the color of the sky") → fast answer
+        - business: Business queries that don't need research (e.g., "improve retention") → agents only
+        - complex: Complex business queries that benefit from research → research + agents
+        """
+        query = state["query"]
+
+        classification_prompt = f"""Classify this query's complexity for a business intelligence system:
+
+Query: {query}
+
+Categories:
+- simple: Non-business questions, general knowledge, casual conversation (answer in <3 seconds)
+- business: Business questions that can be answered by our agents without research papers
+- complex: Deep business questions requiring academic research backing
+
+Respond with ONLY ONE WORD: simple, business, or complex
+
+Examples:
+"What's the color of the sky?" → simple
+"How do I improve customer retention?" → business
+"What's the optimal pricing strategy for B2B SaaS with 500+ customers based on latest research?" → complex
+
+Classification:"""
+
+        try:
+            response = self.gpt5.generate(
+                input_text=classification_prompt,
+                reasoning_effort="low",
+                text_verbosity="low",
+            ).strip().lower()
+
+            # Extract classification
+            if "simple" in response:
+                complexity = "simple"
+            elif "complex" in response:
+                complexity = "complex"
+            elif "business" in response:
+                complexity = "business"
+            else:
+                # Default to business if unclear
+                complexity = "business"
+
+            print(f"🔍 Query Complexity: {complexity.upper()}")
+            state["query_complexity"] = complexity
+
+        except Exception as e:
+            print(f"⚠️  Complexity classification failed: {e}, defaulting to 'business'")
+            state["query_complexity"] = "business"
+
+        return state
+
+    def _route_by_complexity(self, state: AgentState) -> str:
+        """Route based on query complexity."""
+        complexity = state.get("query_complexity", "business")
+        return complexity
+
+    @traceable(name="fast_answer")
+    def _fast_answer_node(self, state: AgentState) -> AgentState:
+        """
+        Fast direct answer for simple non-business queries.
+        Bypasses all agents for <3 second response time.
+        """
+        query = state["query"]
+
+        print("⚡ Fast Answer Mode - Direct response")
+
+        # Use GPT-5 for simple, fast answer
+        answer = self.gpt5.generate(
+            input_text=f"Answer this question concisely:\n\n{query}",
+            reasoning_effort="low",
+            text_verbosity="medium",
+        )
+
+        state["synthesis"] = answer
+        state["agents_to_call"] = []  # No agents needed
+
+        return state
+
+    def _route_after_router(self, state: AgentState) -> str:
+        """Determine if research synthesis is needed after routing."""
+        complexity = state.get("query_complexity", "business")
+
+        # Only use research for COMPLEX queries (skip for business/simple)
+        if complexity == "complex" and self.enable_rag:
+            return "research"
+
+        # Skip research for business and simple queries
+        return "agents"
 
     @traceable(name="router_node")
     def _router_node(self, state: AgentState) -> AgentState:
@@ -149,14 +257,49 @@ class LangGraphOrchestrator:
         # Use ML routing if enabled
         if self.use_ml_routing and self.ml_router:
             try:
-                agents_to_call = self.ml_router.predict(query)
+                # Define per-agent adaptive thresholds based on training performance
+                # Market: Higher threshold (tends to over-predict)
+                # Leadgen: Lower threshold (tends to under-predict)
+                ADAPTIVE_THRESHOLDS = {
+                    "market": 0.55,      # Slightly higher (80% multi-agent in training)
+                    "financial": 0.45,   # Standard
+                    "operations": 0.45,  # Standard
+                    "leadgen": 0.35      # Lower (under-represented in training)
+                }
+
+                # Get predictions with adaptive thresholds
+                agents_to_call = self.ml_router.predict(
+                    query,
+                    adaptive_thresholds=ADAPTIVE_THRESHOLDS
+                )
                 probas = self.ml_router.predict_proba(query)
 
                 print(f"🤖 ML Router: {agents_to_call}")
                 print(f"   Confidence: {probas}")
 
-                state["agents_to_call"] = agents_to_call
-                return state
+                # Confidence-based fallback logic
+                # If ML is uncertain, fall back to GPT-5 for verification
+                confidence_scores = list(probas.values())
+                max_confidence = max(confidence_scores)
+                min_confidence = min(confidence_scores)
+
+                # Check for uncertainty indicators:
+                # 1. All scores in the "muddy middle" (0.3-0.7)
+                # 2. Very close scores (indecisive)
+                # 3. No high-confidence predictions
+                all_in_middle = all(0.3 <= score <= 0.7 for score in confidence_scores)
+                max_spread = max_confidence - min_confidence
+                indecisive = max_spread < 0.3  # All scores within 0.3 of each other
+
+                if all_in_middle or (indecisive and max_confidence < 0.7):
+                    print(f"⚠️  ML router uncertain (max={max_confidence:.2f}, spread={max_spread:.2f})")
+                    print(f"   Falling back to GPT-5 for verification...")
+                    # Fall through to GPT-5 routing
+                else:
+                    # ML is confident, use its prediction
+                    print(f"   ✓ High confidence (max={max_confidence:.2f})")
+                    state["agents_to_call"] = agents_to_call
+                    return state
 
             except Exception as e:
                 print(f"⚠️  ML routing failed: {e}, falling back to GPT-5")
@@ -247,72 +390,31 @@ Only output the JSON array, nothing else."""
 
         return state
 
-    def _route_to_agents(self, state: AgentState) -> str:
-        """Conditional edge function: Routes to appropriate agents based on router decision."""
+    @traceable(name="parallel_agents")
+    def _parallel_agents_node(self, state: AgentState) -> AgentState:
+        """
+        Execute all required agents in parallel for 3x speedup.
+
+        This replaces the old sequential execution chain.
+        """
         agents_to_call = state.get("agents_to_call", [])
 
         if not agents_to_call:
-            return "synthesis"
+            print("⚠️  No agents selected - skipping agent execution")
+            return state
 
-        # Return first agent to call (others will be called in parallel)
-        # Note: This is a limitation of the current routing approach
-        # For true parallelization, we'll execute all agents asynchronously in one node
-        return agents_to_call[0] if len(agents_to_call) == 1 else "market"
+        print(f"🚀 Parallel Execution: {len(agents_to_call)} agents running concurrently")
 
-    @traceable(name="market_agent")
-    def _market_agent_node(self, state: AgentState) -> AgentState:
-        """Market analysis agent node."""
-        if "market" in state.get("agents_to_call", []):
-            # Do web research first
-            web_results = state.get("web_research")
-            if not web_results:
-                web_results = self.web_research.execute(state["query"])
-                state["web_research"] = web_results
+        # Run agents in parallel using asyncio
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            state = loop.run_until_complete(self._execute_agents_parallel(state))
+        finally:
+            loop.close()
 
-            # Get research context if available
-            research_context = state.get("research_context", "")
-
-            state["market_analysis"] = self.market_agent.analyze(
-                query=state["query"],
-                web_research_results=web_results,
-                research_context=research_context
-            )
-        return state
-
-    @traceable(name="operations_agent")
-    def _operations_agent_node(self, state: AgentState) -> AgentState:
-        """Operations audit agent node."""
-        if "operations" in state.get("agents_to_call", []):
-            research_context = state.get("research_context", "")
-
-            state["operations_audit"] = self.operations_agent.audit(
-                query=state["query"],
-                research_context=research_context
-            )
-        return state
-
-    @traceable(name="financial_agent")
-    def _financial_agent_node(self, state: AgentState) -> AgentState:
-        """Financial modeling agent node."""
-        if "financial" in state.get("agents_to_call", []):
-            research_context = state.get("research_context", "")
-
-            state["financial_modeling"] = self.financial_agent.model_financials(
-                query=state["query"],
-                research_context=research_context
-            )
-        return state
-
-    @traceable(name="leadgen_agent")
-    def _leadgen_agent_node(self, state: AgentState) -> AgentState:
-        """Lead generation agent node."""
-        if "leadgen" in state.get("agents_to_call", []):
-            research_context = state.get("research_context", "")
-
-            state["lead_generation"] = self.lead_gen_agent.generate_strategy(
-                query=state["query"],
-                research_context=research_context
-            )
+        print("✓ All agents completed")
         return state
 
     @traceable(name="synthesis_node")
@@ -330,6 +432,18 @@ Only output the JSON array, nothing else."""
             agent_outputs.append(f"FINANCIAL ANALYSIS:\n{state['financial_modeling']}")
         if state.get("lead_generation"):
             agent_outputs.append(f"LEAD GENERATION STRATEGY:\n{state['lead_generation']}")
+
+        # If no agent outputs, return early (shouldn't happen, but safety check)
+        if not agent_outputs:
+            print("⚠️  No agent outputs to synthesize")
+            state["synthesis"] = "No analysis available. Please try again."
+            return state
+
+        # If only one agent output, return it directly without synthesis overhead
+        if len(agent_outputs) == 1:
+            print("📝 Single agent output - skipping synthesis overhead")
+            state["synthesis"] = agent_outputs[0]
+            return state
 
         # Build synthesis prompt with conversation context
         context = ""
@@ -351,6 +465,8 @@ Your task:
 4. Offer a holistic strategic recommendation
 
 Provide an executive summary followed by detailed recommendations."""
+
+        print(f"🔄 Synthesizing {len(agent_outputs)} agent outputs")
 
         synthesis = self.gpt5.generate(
             input_text=synthesis_prompt,
@@ -388,24 +504,73 @@ Provide an executive summary followed by detailed recommendations."""
         return state
 
     async def _run_market_agent_async(self, state: AgentState) -> Dict[str, str]:
-        """Run market agent asynchronously."""
-        web_results = state.get("web_research") or self.web_research.execute(state["query"])
-        analysis = self.market_agent.analyze(state["query"], web_results)
+        """Run market agent asynchronously in a thread pool."""
+        # Use asyncio.to_thread to run blocking I/O in a separate thread
+        loop = asyncio.get_event_loop()
+
+        # Get web results (blocking I/O)
+        web_results = state.get("web_research")
+        if not web_results:
+            web_results = await loop.run_in_executor(
+                None, self.web_research.execute, state["query"]
+            )
+
+        research_context = state.get("research_context", "")
+
+        # Run agent analysis (blocking I/O) in thread pool
+        analysis = await loop.run_in_executor(
+            None,
+            lambda: self.market_agent.analyze(
+                query=state["query"],
+                web_research_results=web_results,
+                research_context=research_context
+            )
+        )
         return {"market_analysis": analysis, "web_research": web_results}
 
     async def _run_operations_agent_async(self, state: AgentState) -> Dict[str, str]:
-        """Run operations agent asynchronously."""
-        audit = self.operations_agent.audit(state["query"])
+        """Run operations agent asynchronously in a thread pool."""
+        loop = asyncio.get_event_loop()
+        research_context = state.get("research_context", "")
+
+        # Run agent audit (blocking I/O) in thread pool
+        audit = await loop.run_in_executor(
+            None,
+            lambda: self.operations_agent.audit(
+                query=state["query"],
+                research_context=research_context
+            )
+        )
         return {"operations_audit": audit}
 
     async def _run_financial_agent_async(self, state: AgentState) -> Dict[str, str]:
-        """Run financial agent asynchronously."""
-        modeling = self.financial_agent.model_financials(state["query"])
+        """Run financial agent asynchronously in a thread pool."""
+        loop = asyncio.get_event_loop()
+        research_context = state.get("research_context", "")
+
+        # Run financial modeling (blocking I/O) in thread pool
+        modeling = await loop.run_in_executor(
+            None,
+            lambda: self.financial_agent.model_financials(
+                query=state["query"],
+                research_context=research_context
+            )
+        )
         return {"financial_modeling": modeling}
 
     async def _run_leadgen_agent_async(self, state: AgentState) -> Dict[str, str]:
-        """Run leadgen agent asynchronously."""
-        strategy = self.lead_gen_agent.generate_strategy(state["query"])
+        """Run leadgen agent asynchronously in a thread pool."""
+        loop = asyncio.get_event_loop()
+        research_context = state.get("research_context", "")
+
+        # Run lead gen strategy (blocking I/O) in thread pool
+        strategy = await loop.run_in_executor(
+            None,
+            lambda: self.lead_gen_agent.generate_strategy(
+                query=state["query"],
+                research_context=research_context
+            )
+        )
         return {"lead_generation": strategy}
 
     @traceable(name="orchestrate_query")
@@ -427,6 +592,7 @@ Provide an executive summary followed by detailed recommendations."""
         # Initialize state
         initial_state: AgentState = {
             "query": query,
+            "query_complexity": "business",  # Will be set by complexity classifier
             "agents_to_call": [],
             "research_enabled": self.enable_rag,
             "research_findings": {},

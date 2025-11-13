@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import pickle
+from datetime import datetime
 from typing import List, Dict, Any, Tuple
 import numpy as np
 
@@ -151,19 +152,34 @@ class RoutingClassifier:
 
         return self.training_metrics
 
-    def predict(self, query: str, threshold: float = 0.5) -> List[str]:
+    def predict(self, query: str, threshold: float = 0.5,
+                adaptive_thresholds: Dict[str, float] = None) -> List[str]:
+        """
+        Predict which agents should handle this query.
+
+        Args:
+            query: User query
+            threshold: Default probability threshold (0.5)
+            adaptive_thresholds: Per-agent thresholds (e.g., {"market": 0.6, "leadgen": 0.3})
+
+        Returns:
+            List of agent names that should be called
+        """
         if not self.models:
             raise ValueError("Model not trained. Call train() or load() first.")
 
+        # Get probability scores for all agents
+        probas = self.predict_proba(query)
+
+        # Use adaptive thresholds if provided, otherwise use default
         agents = []
-        try:
-            for agent, model in self.models.items():
-                prediction = model.predict([query])[0]
-                if prediction == "yes":
-                    agents.append(agent)
-        except Exception as e:
-            logger.error(f"Prediction failed: {e}")
-            raise
+        for agent, prob in probas.items():
+            agent_threshold = threshold
+            if adaptive_thresholds and agent in adaptive_thresholds:
+                agent_threshold = adaptive_thresholds[agent]
+
+            if prob >= agent_threshold:
+                agents.append(agent)
 
         # Fallback to market if no agents selected
         return sorted(agents) if agents else ["market"]
@@ -172,14 +188,25 @@ class RoutingClassifier:
         return [self.predict(q) for q in queries]
 
     def predict_proba(self, query: str) -> Dict[str, float]:
+        """
+        Get probability scores for each agent.
+
+        Returns actual probabilities from SetFit models (not binary 0.0/1.0).
+        SetFit returns [prob_no, prob_yes], we use prob_yes.
+        """
         if not self.models:
             raise ValueError("Model not trained. Call train() or load() first.")
 
         proba = {}
         try:
             for agent, model in self.models.items():
-                prediction = model.predict([query])[0]
-                proba[agent] = 1.0 if prediction == "yes" else 0.0
+                # Get actual probabilities from SetFit model
+                # Returns [[prob_no, prob_yes]] for each query
+                proba_output = model.predict_proba([query])[0]
+
+                # Extract probability of "yes" class (index 1)
+                # This is the confidence that this agent should be called
+                proba[agent] = float(proba_output[1])
         except Exception as e:
             logger.error(f"Probability prediction failed: {e}")
             raise
