@@ -66,6 +66,8 @@ async def root():
             "/query": "POST - Submit a business query for analysis",
             "/history": "GET - Get conversation history",
             "/clear": "POST - Clear conversation memory",
+            "/cache/stats": "GET - Get cache performance statistics",
+            "/cache/clear": "POST - Clear cache",
             "/health": "GET - Health check"
         }
     }
@@ -115,16 +117,50 @@ async def clear_memory():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/cache/stats")
+async def get_cache_stats():
+    """Get cache performance statistics (perfect for demos!)."""
+    try:
+        stats = orchestrator.get_cache_stats()
+        return {
+            "message": "Cache statistics",
+            "stats": stats,
+            "explanation": {
+                "hit_rate": "Percentage of queries served from cache (higher = faster + cheaper)",
+                "cost_savings": "Estimated cost savings from cache hits",
+                "backend": "Cache backend (Redis for production, File for development)"
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/cache/clear")
+async def clear_cache():
+    """Clear the entire cache."""
+    try:
+        orchestrator.clear_cache()
+        return {"message": "Cache cleared successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
+    cache_stats = orchestrator.get_cache_stats()
     return {
         "status": "healthy",
         "openai_configured": bool(Config.OPENAI_API_KEY),
         "openai_model": Config.OPENAI_MODEL,
         "using_gpt5": Config.is_gpt5(),
         "langsmith_tracing": Config.LANGCHAIN_TRACING_V2,
-        "langsmith_project": Config.LANGCHAIN_PROJECT if Config.LANGCHAIN_TRACING_V2 else None
+        "langsmith_project": Config.LANGCHAIN_PROJECT if Config.LANGCHAIN_TRACING_V2 else None,
+        "cache": {
+            "enabled": cache_stats["enabled"],
+            "backend": cache_stats["backend"],
+            "hit_rate": f"{cache_stats['hit_rate_percent']}%"
+        }
     }
 
 

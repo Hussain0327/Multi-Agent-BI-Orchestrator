@@ -14,6 +14,7 @@ from src.agents.research_synthesis import ResearchSynthesisAgent
 from src.tools.web_research import WebResearchTool
 from src.memory import ConversationMemory
 from src.config import Config
+from src.cache import QueryCache
 
 
 class AgentState(TypedDict):
@@ -93,6 +94,9 @@ class LangGraphOrchestrator:
 
         # Initialize memory
         self.memory = ConversationMemory(max_messages=Config.MAX_MEMORY_MESSAGES)
+
+        # Initialize cache
+        self.cache = QueryCache()
 
         # Build the graph
         self.graph = self._build_graph()
@@ -222,12 +226,23 @@ Classification:"""
 
         print("⚡ Fast Answer Mode - Direct response")
 
+        # Check cache first
+        cached_answer = self.cache.get_simple_answer(query)
+        if cached_answer:
+            print("   ⚡ Using cached answer (instant!)")
+            state["synthesis"] = cached_answer
+            state["agents_to_call"] = []
+            return state
+
         # Use GPT-5 for simple, fast answer
         answer = self.gpt5.generate(
             input_text=f"Answer this question concisely:\n\n{query}",
             reasoning_effort="low",
             text_verbosity="medium",
         )
+
+        # Cache the answer (7-day TTL)
+        self.cache.set_simple_answer(query, answer)
 
         state["synthesis"] = answer
         state["agents_to_call"] = []  # No agents needed
@@ -364,6 +379,17 @@ Only output the JSON array, nothing else."""
 
         print("\n📚 Retrieving academic research...")
 
+        # Check cache first (research papers don't change)
+        cached_research = self.cache.get_research(query)
+        if cached_research:
+            print("   ⚡ Using cached research papers")
+            state["research_findings"] = cached_research
+            state["research_context"] = cached_research.get("research_context", "")
+            paper_count = cached_research.get("paper_count", 0)
+            if paper_count > 0:
+                print(f"✓ {paper_count} papers loaded from cache")
+            return state
+
         try:
             # Retrieve and synthesize research
             research_result = self.research_agent.synthesize(
@@ -379,6 +405,8 @@ Only output the JSON array, nothing else."""
             if paper_count > 0:
                 print(f"✓ Retrieved {paper_count} relevant papers")
                 print(f"✓ Research synthesis complete")
+                # Cache the research (7-day TTL)
+                self.cache.set_research(query, research_result)
             else:
                 print("⚠️  No relevant research found - continuing without RAG")
 
@@ -423,14 +451,19 @@ Only output the JSON array, nothing else."""
         query = state["query"]
 
         # Collect agent outputs
+        agent_names = []
         agent_outputs = []
         if state.get("market_analysis"):
+            agent_names.append("market")
             agent_outputs.append(f"MARKET ANALYSIS:\n{state['market_analysis']}")
         if state.get("operations_audit"):
+            agent_names.append("operations")
             agent_outputs.append(f"OPERATIONS AUDIT:\n{state['operations_audit']}")
         if state.get("financial_modeling"):
+            agent_names.append("financial")
             agent_outputs.append(f"FINANCIAL ANALYSIS:\n{state['financial_modeling']}")
         if state.get("lead_generation"):
+            agent_names.append("leadgen")
             agent_outputs.append(f"LEAD GENERATION STRATEGY:\n{state['lead_generation']}")
 
         # If no agent outputs, return early (shouldn't happen, but safety check)
@@ -443,6 +476,13 @@ Only output the JSON array, nothing else."""
         if len(agent_outputs) == 1:
             print("📝 Single agent output - skipping synthesis overhead")
             state["synthesis"] = agent_outputs[0]
+            return state
+
+        # Check cache for synthesis
+        cached_synthesis = self.cache.get_synthesis(query, agent_names)
+        if cached_synthesis:
+            print("   ⚡ Using cached synthesis")
+            state["synthesis"] = cached_synthesis
             return state
 
         # Build synthesis prompt with conversation context
@@ -473,6 +513,9 @@ Provide an executive summary followed by detailed recommendations."""
             reasoning_effort="low",  # Fixed: "high" uses all tokens for reasoning, no output
             text_verbosity="high",
         )
+
+        # Cache the synthesis (1-day TTL)
+        self.cache.set_synthesis(query, agent_names, synthesis)
 
         state["synthesis"] = synthesis
         return state
@@ -634,3 +677,11 @@ Provide an executive summary followed by detailed recommendations."""
     def clear_memory(self):
         """Clear the conversation memory."""
         self.memory.clear()
+
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """Get cache performance statistics (great for demos!)."""
+        return self.cache.get_stats()
+
+    def clear_cache(self):
+        """Clear the entire cache."""
+        self.cache.clear()

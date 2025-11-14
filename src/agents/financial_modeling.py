@@ -1,6 +1,10 @@
 """Financial Modeling Agent - specializes in financial analysis and projections."""
 from typing import Dict, Any
+import json
+import re
+from datetime import datetime
 from src.unified_llm import UnifiedLLM
+from src.schemas import AgentOutput, Findings, Metric, AgentMetadata
 
 
 class FinancialModelingAgent:
@@ -93,3 +97,147 @@ Use specific numbers and financial metrics where possible."""
 
         except Exception as e:
             return f"Error in financial modeling: {str(e)}"
+
+    def model_financials_structured(
+        self,
+        query: str,
+        calculator_results: Dict[str, Any] = None,
+        research_context: str = None
+    ) -> AgentOutput:
+        """
+        Create financial analysis with structured JSON output.
+
+        This method generates structured data suitable for document automation
+        (PowerPoint, Excel generation).
+
+        Args:
+            query: Business query requiring financial analysis
+            calculator_results: Optional calculation results
+            research_context: Optional research context
+
+        Returns:
+            AgentOutput: Structured output conforming to schema
+        """
+        # First, get the text analysis
+        text_analysis = self.model_financials(query, calculator_results, research_context)
+
+        # Build structured prompt for data extraction
+        extraction_prompt = f"""Given this financial analysis, extract structured data in JSON format:
+
+ANALYSIS:
+{text_analysis}
+
+Extract the following in valid JSON format:
+
+{{
+  "executive_summary": "1-2 paragraph summary",
+  "metrics": {{
+    "metric_name": {{"value": number, "unit": "string", "confidence": "high|medium|low", "source": "calculation|assumption"}},
+    ...
+  }},
+  "key_findings": ["finding 1", "finding 2", "finding 3"],
+  "risks": ["risk 1", "risk 2"],
+  "recommendations": [
+    {{
+      "title": "recommendation title",
+      "priority": "high|medium|low",
+      "impact": "expected impact description",
+      "rationale": "why this recommendation",
+      "action_items": ["action 1", "action 2"]
+    }}
+  ]
+}}
+
+Extract ALL metrics mentioned (CAC, LTV, ROI, revenue, costs, etc.) with their actual values.
+Return ONLY valid JSON, no additional text."""
+
+        try:
+            # Get structured data from LLM
+            json_response = self.llm.generate(
+                input_text=extraction_prompt,
+                instructions="You are a data extraction assistant. Extract structured financial data from analysis text. Return ONLY valid JSON.",
+                reasoning_effort="low",
+                max_tokens=2000
+            )
+
+            # Clean and parse JSON
+            json_str = json_response.strip()
+            # Remove markdown code blocks if present
+            json_str = re.sub(r'```json\s*', '', json_str)
+            json_str = re.sub(r'```\s*$', '', json_str)
+
+            extracted_data = json.loads(json_str)
+
+            # Convert to Pydantic models
+            metrics = {}
+            for key, val in extracted_data.get("metrics", {}).items():
+                metrics[key] = Metric(**val)
+
+            findings = Findings(
+                executive_summary=extracted_data.get("executive_summary", ""),
+                metrics=metrics,
+                narrative=text_analysis,  # Full text analysis as narrative
+                key_findings=extracted_data.get("key_findings", []),
+                risks=extracted_data.get("risks", []),
+                recommendations=extracted_data.get("recommendations", [])
+            )
+
+            metadata = AgentMetadata(
+                confidence="high",
+                model=self.llm.get_current_provider(),
+                tokens_used=None,  # TODO: Track tokens
+                cost_usd=None,  # TODO: Track cost
+                processing_time_seconds=None  # TODO: Track time
+            )
+
+            return AgentOutput(
+                query=query,
+                agent="financial",
+                timestamp=datetime.now(),
+                findings=findings,
+                research_citations=[],  # TODO: Extract citations
+                metadata=metadata
+            )
+
+        except json.JSONDecodeError as e:
+            # Fallback: create minimal structured output from text
+            print(f"⚠️  JSON extraction failed: {e}")
+            print(f"Response was: {json_response[:200]}...")
+
+            fallback_findings = Findings(
+                executive_summary="See narrative for full analysis",
+                narrative=text_analysis,
+                key_findings=["Analysis generated successfully - see narrative"],
+                recommendations=[]
+            )
+
+            return AgentOutput(
+                query=query,
+                agent="financial",
+                timestamp=datetime.now(),
+                findings=fallback_findings,
+                metadata=AgentMetadata(
+                    confidence="medium",
+                    model=self.llm.get_current_provider()
+                )
+            )
+
+        except Exception as e:
+            # Error fallback
+            error_findings = Findings(
+                executive_summary=f"Error during financial analysis: {str(e)}",
+                narrative=str(e),
+                key_findings=[],
+                recommendations=[]
+            )
+
+            return AgentOutput(
+                query=query,
+                agent="financial",
+                timestamp=datetime.now(),
+                findings=error_findings,
+                metadata=AgentMetadata(
+                    confidence="low",
+                    model="error"
+                )
+            )

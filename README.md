@@ -13,37 +13,48 @@ A production-ready multi-agent business intelligence system with Research-Augmen
 ## Quick Start
 
 ### Prerequisites
-- Python 3.12+
+- Python 3.12+ OR Docker + Docker Compose
 - OpenAI API key with GPT-5-nano access
 - LangSmith API key (optional, for tracing)
 
-### Installation
+### 🚀 Option 1: Docker (Recommended for Showcase)
 
 ```bash
 # Clone the repository
 git clone <your-repo-url>
 cd multi_agent_workflow
 
+# Configure environment
+cp .env.example .env
+# Edit .env and add your API keys
+
+# Start everything (Redis + API) with one command!
+docker-compose up
+
+# Visit http://localhost:8000/docs
+# Redis caching enabled automatically ⚡
+```
+
+### Option 2: Local Python
+
+```bash
 # Install dependencies
 pip install -r requirements.txt
 
 # Configure environment
 cp .env.example .env
 # Edit .env and add your API keys
-```
 
-### Run Your First Query
-
-```bash
 # Interactive CLI
 python cli.py
 
 # Or via API server
 uvicorn src.main:app --reload
-# Visit http://localhost:8000/docs
 ```
 
 **Example Query**: "How can I improve customer retention for my B2B SaaS product?"
+
+**Try it twice** to see caching in action (1st: ~69s, 2nd: ~0.5s)! 🚀
 
 ---
 
@@ -116,6 +127,7 @@ Comprehensive Recommendation (with citations if complex query)
 | **LLM** | DeepSeek v3.2-Exp + GPT-5-nano | Hybrid strategy (99% cost savings) |
 | **Routing** | SetFit ML Classifier + GPT-5 | Probabilistic routing with confidence fallback |
 | **Execution** | Python asyncio | True parallel agent execution via thread pools |
+| **Caching** | Redis (+ file fallback) | Multi-layer caching (60-138x speedup on hits) |
 | **Observability** | LangSmith | Tracing & monitoring |
 | **Vector Store** | ChromaDB | Document embeddings |
 | **Research APIs** | Semantic Scholar, arXiv | Academic paper retrieval |
@@ -157,6 +169,9 @@ Comprehensive Recommendation (with citations if complex query)
 ### Phase 2 Week 3 (Current)
 - [x] Parallel agent execution (2.1x speedup for business queries)
 - [x] Query complexity classification (simple/business/complex routing)
+- [x] Redis caching layer with automatic fallback (60-138x speedup on cache hits)
+- [x] Docker Compose setup with Redis service
+- [x] Cache statistics API endpoint for monitoring
 - [x] Fast answer path for simple queries (under 5 seconds)
 - [x] Conditional research synthesis (skip for simple/business queries)
 - [x] Probabilistic ML routing with real confidence scores

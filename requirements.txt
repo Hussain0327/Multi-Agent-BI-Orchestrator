@@ -29,6 +29,14 @@ setfit>=1.0.0
 datasets>=2.14.0
 scipy>=1.11.0
 
+# Caching
+redis>=5.0.0
+
+# Document generation
+python-pptx>=0.6.21
+matplotlib>=3.7.0
+Pillow>=10.0.0
+
 # Additional utilities
 aiohttp>=3.9.0
 asyncio>=3.4.3
