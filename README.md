@@ -1,38 +1,41 @@
-# Business Intelligence Orchestrator v2.0
+# Business Intelligence Orchestrator
 
-A production-ready multi-agent business intelligence system with Research-Augmented Generation (RAG), parallel agent execution, and intelligent query routing. Built for ValtricAI consulting with academic research integration.
+A self-hosted multi-agent business intelligence system with automated document generation, research augmentation, and intelligent query routing. Generates professional PowerPoint presentations and Excel workbooks from natural language business questions.
 
-[![Phase](https://img.shields.io/badge/Phase-2%20Week%203-darkred)]()
-[![Status](https://img.shields.io/badge/Status-Active%20Development-darkestgreen)]()
-[![GPT-5](https://img.shields.io/badge/GPT--5-nano-orange)]()
-[![DeepSeek](https://img.shields.io/badge/DeepSeek-v3.2--Exp-purple)]()
-[![LangGraph](https://img.shields.io/badge/LangGraph-Orchestration-darkgreen)]()
+## Overview
+
+This system coordinates multiple specialized AI agents to provide comprehensive business analysis backed by academic research. It automatically generates three deliverables from a single query:
+
+1. **Structured JSON** - Machine-readable data for API integrations
+2. **PowerPoint Presentation** - Professional executive summary decks
+3. **Excel Workbook** - Analysis spreadsheets with formulas and scenarios
+
+**Key Features:**
+- Research-Augmented Generation (RAG) with academic paper citations
+- Parallel agent execution for 2-3x performance improvement
+- Hybrid LLM strategy (DeepSeek + GPT-5) for 90% cost savings
+- Redis caching layer for 60-138x speedup on repeated queries
+- Docker Compose deployment for easy self-hosting
 
 ---
 
 ## Quick Start
 
-### Prerequisites
-- Python 3.12+ OR Docker + Docker Compose
-- OpenAI API key with GPT-5-nano access
-- LangSmith API key (optional, for tracing)
-
-### 🚀 Option 1: Docker (Recommended for Showcase)
+### Option 1: Docker (Recommended)
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone <your-repo-url>
 cd multi_agent_workflow
 
 # Configure environment
 cp .env.example .env
-# Edit .env and add your API keys
+# Edit .env with your API keys
 
-# Start everything (Redis + API) with one command!
+# Start all services
 docker-compose up
 
-# Visit http://localhost:8000/docs
-# Redis caching enabled automatically ⚡
+# Access API at http://localhost:8000/docs
 ```
 
 ### Option 2: Local Python
@@ -43,215 +46,176 @@ pip install -r requirements.txt
 
 # Configure environment
 cp .env.example .env
-# Edit .env and add your API keys
 
 # Interactive CLI
 python cli.py
 
-# Or via API server
+# Or start API server
 uvicorn src.main:app --reload
 ```
 
-**Example Query**: "How can I improve customer retention for my B2B SaaS product?"
+### Prerequisites
 
-**Try it twice** to see caching in action (1st: ~69s, 2nd: ~0.5s)! 🚀
-
----
-
-## Table of Contents
-
-1. [What This Is](#what-this-is)
-2. [System Architecture](#system-architecture)
-3. [Features](#features)
-4. [Project Status](#project-status)
-5. [Directory Structure](#directory-structure)
-6. [Documentation Guide](#documentation-guide)
-7. [Usage Examples](#usage-examples)
-8. [Development Workflow](#development-workflow)
-9. [Testing & Evaluation](#testing--evaluation)
-10. [Performance Metrics](#performance-metrics)
-11. [Troubleshooting](#troubleshooting)
-12. [Contributing](#contributing)
-
----
-
-## What This Is
-
-A sophisticated AI system that provides **research-backed business intelligence** by coordinating **4 specialized agents**:
-
-1. **Market Analysis Agent** - Market trends, competition, customer segmentation
-2. **Operations Audit Agent** - Process optimization, efficiency analysis
-3. **Financial Modeling Agent** - ROI calculations, revenue projections
-4. **Lead Generation Agent** - Customer acquisition, growth strategies
-
-**Key Innovation**: Research-Augmented Generation (RAG) retrieves academic papers from **Semantic Scholar** and **arXiv** to back recommendations with citations.
-
-### Use Cases
-
-- **B2B SaaS Consulting** - Comprehensive business analysis
-- **Strategic Planning** - Data-driven recommendations
-- **Market Research** - Industry trends with citations
-- **Competitive Analysis** - Research-backed insights
+- Python 3.12+ or Docker
+- OpenAI API key (GPT-5 access)
+- DeepSeek API key (optional, for cost savings)
+- LangSmith API key (optional, for tracing)
 
 ---
 
 ## System Architecture
 
-### High-Level Flow
+### Agent Workflow
 
 ```
 User Query
     ↓
-[Complexity Classifier] - Determines query type (simple/business/complex)
+Query Classifier (simple/business/complex)
     ↓
-├─ SIMPLE → Fast Direct Answer (under 5 seconds)
-│
-├─ BUSINESS → Router → Parallel Agents → Synthesis
-│
-└─ COMPLEX → Router → Research Synthesis → Parallel Agents → Synthesis
-
-Parallel Agent Execution:
-    ├─ Market Analysis      (concurrent)
-    ├─ Operations Audit     (concurrent)
-    ├─ Financial Modeling   (concurrent)
-    └─ Lead Generation      (concurrent)
-    ↓
-Comprehensive Recommendation (with citations if complex query)
+├─ SIMPLE → Direct Answer (5s)
+├─ BUSINESS → Agent Router → 4 Parallel Agents → Synthesis
+└─ COMPLEX → Research Retrieval → Agent Router → 4 Parallel Agents → Synthesis
 ```
+
+### Specialized Agents
+
+1. **Market Analysis** - Trends, competition, customer segmentation
+2. **Operations Audit** - Process optimization, efficiency analysis
+3. **Financial Modeling** - ROI calculations, revenue projections
+4. **Lead Generation** - Customer acquisition, growth strategies
 
 ### Technology Stack
 
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| **Orchestration** | LangGraph | State machine workflow with conditional routing |
-| **LLM** | DeepSeek v3.2-Exp + GPT-5-nano | Hybrid strategy (99% cost savings) |
-| **Routing** | SetFit ML Classifier + GPT-5 | Probabilistic routing with confidence fallback |
-| **Execution** | Python asyncio | True parallel agent execution via thread pools |
-| **Caching** | Redis (+ file fallback) | Multi-layer caching (60-138x speedup on hits) |
-| **Observability** | LangSmith | Tracing & monitoring |
-| **Vector Store** | ChromaDB | Document embeddings |
-| **Research APIs** | Semantic Scholar, arXiv | Academic paper retrieval |
-| **API Framework** | FastAPI | REST API server |
-| **CLI** | Custom Python | Interactive interface |
+| Component | Technology |
+|-----------|-----------|
+| Orchestration | LangGraph state machine |
+| LLM | DeepSeek v3.2-Exp + GPT-5-nano |
+| Routing | SetFit ML classifier + GPT-5 fallback |
+| Execution | Python asyncio (parallel) |
+| Caching | Redis + file fallback |
+| Vector Store | ChromaDB |
+| Research | Semantic Scholar + arXiv APIs |
+| Documents | python-pptx + openpyxl |
+| API | FastAPI |
 
 ---
 
-## Features
+## Document Automation
 
-### Phase 1 (Complete)
-- [x] GPT-5 Responses API integration
-- [x] LangGraph state machine orchestration
-- [x] 4 specialized business agents
-- [x] Semantic routing (AI-powered, not keywords)
-- [x] LangSmith tracing and monitoring
-- [x] Conversation memory
-- [x] FastAPI REST API
-- [x] Interactive CLI
+### Automatic Generation
 
-### Phase 2 Week 1 (Complete)
-- [x] ChromaDB vector store
-- [x] Semantic Scholar & arXiv integration
-- [x] Research synthesis agent
-- [x] Citation formatting (APA style)
-- [x] All agents updated with research context
-- [x] Comprehensive test suite (5/5 tests passing)
+From a single business query, the system generates:
 
-### Phase 2 Week 2 (Complete)
-- [x] Test query suite (25 queries)
-- [x] Evaluation framework with LLM-as-judge
-- [x] Bug fixes for GPT-5 reasoning effort
-- [x] DeepSeek v3.2-Exp integration (99% cost savings!)
-- [x] Hybrid routing strategy (DeepSeek + GPT-5 fallback)
-- [x] ML routing classifier trained (77% accuracy)
-- [x] Ran 10-query benchmark with detailed analysis
-- [x] Visual analysis PDF generated
+**PowerPoint Presentation** (10-12 slides)
+- Title slide with branding
+- Executive summary
+- Context and methodology
+- Key findings
+- Metrics visualization
+- Risk analysis
+- Detailed recommendations
+- Next steps
+- References
 
-### Phase 2 Week 3 (Current)
-- [x] Parallel agent execution (2.1x speedup for business queries)
-- [x] Query complexity classification (simple/business/complex routing)
-- [x] Redis caching layer with automatic fallback (60-138x speedup on cache hits)
-- [x] Docker Compose setup with Redis service
-- [x] Cache statistics API endpoint for monitoring
-- [x] Fast answer path for simple queries (under 5 seconds)
-- [x] Conditional research synthesis (skip for simple/business queries)
-- [x] Probabilistic ML routing with real confidence scores
-- [x] Per-agent adaptive thresholds (market=0.55, leadgen=0.35, etc.)
-- [x] Confidence-based fallback to GPT-5 routing
-- [ ] Complete retraining of ML classifier with improved data
-- [ ] Production monitoring and alerts
-- [ ] Further performance optimization
+**Excel Workbook** (5 sheets)
+- Executive Summary: KPI dashboard
+- Raw Data: Complete analysis output
+- Calculations: Formulas with Base/Upside/Downside scenarios
+- Charts & Visuals: Data visualizations
+- Assumptions & Sources: Methodology and citations
+
+### Usage Example
+
+```python
+from src.agents.financial_modeling import FinancialModelingAgent
+from src.generators import PowerPointGenerator, ExcelGenerator
+
+# Generate analysis
+agent = FinancialModelingAgent()
+output = agent.model_financials_structured(
+    "What are the unit economics for my SaaS business?"
+)
+
+# Generate PowerPoint
+ppt_gen = PowerPointGenerator()
+ppt_gen.generate(output, "analysis.pptx")
+
+# Generate Excel
+excel_gen = ExcelGenerator()
+excel_gen.generate(output, "analysis.xlsx")
+```
+
+### Complete Automation Test
+
+```bash
+# Generates JSON + PowerPoint + Excel from one query
+python test_document_automation.py
+```
 
 ---
 
-## Project Status
+## Features by Phase
 
-### Current Sprint: Phase 2 Week 3 - Production Optimization
+### Phase 1: Core System (Complete)
 
-**Last Updated**: November 13, 2025
+- GPT-5 API integration
+- LangGraph orchestration
+- 4 specialized agents
+- Conversation memory
+- FastAPI REST API
+- Interactive CLI
 
-#### Completed This Week
-- Implemented parallel agent execution using asyncio thread pools
-- Built query complexity classification system (simple/business/complex)
-- Added fast answer path for simple queries (bypasses all agents)
-- Fixed ML routing confidence scores (now probabilistic, not binary)
-- Implemented per-agent adaptive thresholds for better accuracy
-- Added confidence-based fallback to GPT-5 for uncertain routing
-- Achieved 2.1x speedup for business queries (145s → 69s)
-- Achieved 3.4x speedup vs old sequential with research (235s → 69s)
-- Conditional research synthesis (only runs for complex queries)
+### Phase 2: Research & Intelligence (Complete)
 
-#### Performance Improvements
+**Week 1: RAG Integration**
+- ChromaDB vector store
+- Semantic Scholar integration
+- arXiv integration
+- Research synthesis agent
+- APA citation formatting
 
-**Query Processing Speed:**
-- Simple queries: Now under 5 seconds (new fast path)
-- Business queries: 69s (down from 145s = 2.1x faster)
-- Complex queries with research: 153s (down from 235s = 1.5x faster)
+**Week 2: ML Routing**
+- SetFit ML classifier (77% accuracy)
+- Evaluation framework
+- DeepSeek integration (90% cost savings)
+- Hybrid routing strategy
+- 10-query benchmark analysis
 
-**ML Routing Enhancements:**
-- Fixed binary confidence issue: Now returns real probabilities (0.0-1.0 range)
-- Adaptive thresholds per agent: market=0.55, operations=0.45, financial=0.45, leadgen=0.35
-- Confidence-based fallback: Uses GPT-5 when ML uncertain (scores in 0.3-0.7 range)
-- Better handling of under-represented agents (leadgen gets lower threshold)
+**Week 3: Performance & Production**
+- Parallel agent execution (2.1x speedup)
+- Query complexity classification
+- Redis caching (60-138x speedup)
+- Docker Compose deployment
+- Fast answer path for simple queries
 
-**Cost Efficiency:**
-- DeepSeek still delivering 99% cost savings
-- Business queries: $0.0026/query (vs $0.28 for pure GPT-5)
-- No quality degradation vs GPT-5 baseline
+### Phase 3: Document Automation (Complete)
 
-#### Benchmark Results
+- Structured JSON schema with Pydantic
+- PowerPoint generation (branded decks)
+- Excel generation (workbooks with scenarios)
+- Chart generation with matplotlib
+- Complete automation pipeline
 
-**Visual Analysis:**
+---
 
-![Routing Accuracy by Query](eval/benchmark_analysis_page1.png)
-*Plot 1: Routing accuracy per query - Green bars = perfect routing (100%), Red bars = missed agents*
+## Performance Metrics
 
-![Latency by Query](eval/benchmark_analysis_page2.png)
-*Plot 2: Latency per query - Yellow = fast, Red = slow. Average: 144.8s*
+### Current Performance
 
-**Full PDF:** [`eval/benchmark_analysis.pdf`](eval/benchmark_analysis.pdf)
+| Metric | Value |
+|--------|-------|
+| Simple query latency | ~5s |
+| Business query latency | 69s (2.1x faster than sequential) |
+| Complex query latency | 153s (1.5x faster) |
+| Cost per query | $0.0026 (90% savings vs GPT-5) |
+| Cache hit speedup | 60-138x |
+| Agent execution | Parallel (4 concurrent) |
 
-**Raw Data:** [`eval/benchmark_results_10queries.csv`](eval/benchmark_results_10queries.csv)
-- Per-agent costs, models, confidence scores
-- Routing decisions (expected vs actual)
-- False negatives/positives identified
+### Benchmark Results
 
-**tl;dr:** DeepSeek is better than GPT-5 for cost. ML router needs work before production.
-
-#### Next Steps
-- Retrain ML classifier with more epochs and improved training data
-- Add production monitoring and alerting
-- Fix LLM judge for quality evaluation
-- Collect real-world queries for training data augmentation
-- Implement query result caching for repeated queries
-
-#### Technical Achievements
-- Refactored LangGraph workflow with conditional node routing
-- Implemented true async parallelism using Python thread pools
-- Created intelligent query complexity classification
-- Built adaptive threshold system for ML routing
-- Added graceful fallback mechanisms for robustness
-
-See [`docs/PARALLEL_EXECUTION_COMPLETE.md`](docs/PARALLEL_EXECUTION_COMPLETE.md) for detailed implementation notes.
+- Visual analysis: `eval/benchmark_analysis.pdf`
+- Raw data: `eval/benchmark_results_10queries.csv`
+- 10-query benchmark showing routing accuracy and latency
 
 ---
 
@@ -259,139 +223,39 @@ See [`docs/PARALLEL_EXECUTION_COMPLETE.md`](docs/PARALLEL_EXECUTION_COMPLETE.md)
 
 ```
 multi_agent_workflow/
-├── README.md                    # ← YOU ARE HERE
-├── .env                         # API keys (gitignored)
-├── .env.example                 # Template for environment setup
-├── requirements.txt             # Python dependencies
+├── src/
+│   ├── agents/              # Specialized AI agents
+│   ├── tools/               # Agent tools (research, calculator)
+│   ├── generators/          # Document generators (PowerPoint, Excel)
+│   ├── schemas/             # Pydantic data schemas
+│   ├── langgraph_orchestrator.py
+│   ├── cache.py             # Redis caching
+│   └── main.py              # FastAPI server
 │
-├── src/                         # Core application code
-│   ├── config.py                # Configuration management
-│   ├── gpt5_wrapper.py          # GPT-5 Responses API wrapper
-│   ├── langgraph_orchestrator.py # LangGraph state machine
-│   ├── memory.py                # Conversation memory
-│   ├── main.py                  # FastAPI server
-│   ├── vector_store.py          # ChromaDB wrapper
-│   │
-│   ├── agents/                  # Specialized agents
-│   │   ├── market_analysis.py
-│   │   ├── operations_audit.py
-│   │   ├── financial_modeling.py
-│   │   ├── lead_generation.py
-│   │   └── research_synthesis.py # RAG agent
-│   │
-│   └── tools/                   # Agent tools
-│       ├── calculator.py
-│       ├── web_research.py
-│       └── research_retrieval.py # Semantic Scholar + arXiv
+├── eval/                    # Evaluation framework
+│   ├── benchmark.py
+│   └── test_queries.json
 │
-├── eval/                        # Evaluation framework
-│   ├── benchmark.py             # Evaluation runner
-│   ├── test_queries.json        # 25 test queries
-│   └── results_*.json           # Evaluation results
+├── models/                  # ML models
+│   └── routing_classifier.pkl
 │
-├── models/                      # ML models (future)
-├── scripts/                     # Utility scripts
+├── docs/                    # Documentation
+│   ├── DOCUMENT_AUTOMATION.md
+│   ├── PARALLEL_EXECUTION_COMPLETE.md
+│   └── [other docs]
 │
-├── cli.py                       # Interactive CLI
-├── test_system.py               # System tests
-├── test_rag_system.py           # RAG integration tests
-│
-└── docs/                        #  ALL DOCUMENTATION
-    ├── BUG_FIX_REPORT.md        # Recent bug investigation
-    ├── PHASE1_COMPLETE.md       # Phase 1 summary
-    ├── PHASE2_TEST_FINDINGS.md  # Test analysis
-    ├── PICKUP_HERE.md           # Session resume guide
-    ├── WEEK2_PLAN.md            # Week 2 roadmap
-    ├── claude.md                # Context for AI assistants
-    ├── gpt5nano.md              # GPT-5 API reference
-    ├── phase2.md                # Phase 2 detailed plan
-    └── readtom.md               # Strategic vision
+├── test_document_automation.py   # Complete automation demo
+├── test_structured_output.py     # Phase 1 test
+├── test_powerpoint_generation.py # Phase 2 test
+├── cli.py                         # Interactive CLI
+└── docker-compose.yml             # Docker deployment
 ```
 
 ---
 
-## Documentation Guide
+## API Usage
 
-All documentation is organized in the [`docs/`](docs/) folder:
-
-### Start Here
-
-| Document | Purpose | When to Read |
-|----------|---------|--------------|
-| [**PICKUP_HERE.md**](docs/PICKUP_HERE.md) | Resume work after break | Starting a session |
-| [**WEEK2_QUICK_START.md**](docs/WEEK2_QUICK_START.md) | How to run evaluations | Running benchmarks |
-| [**claude.md**](docs/claude.md) | Complete system context | Understanding architecture |
-
-### Phase Documentation
-
-| Document | Phase | Purpose |
-|----------|-------|---------|
-| [**PHASE1_COMPLETE.md**](docs/PHASE1_COMPLETE.md) | Phase 1 | LangGraph + GPT-5 integration |
-| [**PHASE2_TEST_FINDINGS.md**](docs/PHASE2_TEST_FINDINGS.md) | Phase 2 W1 | RAG test results |
-| [**WEEK2_PLAN.md**](docs/WEEK2_PLAN.md) | Phase 2 W2 | ML routing roadmap |
-
-### Bug Reports & Fixes
-
-| Document | Purpose |
-|----------|---------|
-| [**BUG_FIX_REPORT.md**](docs/BUG_FIX_REPORT.md) | GPT-5 reasoning bug investigation (Nov 5, 2025) |
-
-### Deployment & Operations
-
-| Document | Purpose |
-|----------|---------|
-| [**SAFE_COMMIT_GUIDE.md**](docs/SAFE_COMMIT_GUIDE.md) | Git safety procedures |
-| [**READY_TO_COMMIT.md**](docs/READY_TO_COMMIT.md) | Pre-commit checklist |
-
-### Technical Reference
-
-| Document | Purpose |
-|----------|---------|
-| [**gpt5nano.md**](docs/gpt5nano.md) | GPT-5 API documentation |
-| [**phase2.md**](docs/phase2.md) | Phase 2 technical specs |
-| [**readtom.md**](docs/readtom.md) | Strategic vision & architecture |
-
-### Historical
-
-| Document | Status |
-|----------|--------|
-| [**PICKUP_TOMORROW.md**](docs/PICKUP_TOMORROW.md) | Legacy - use PICKUP_HERE.md instead |
-| [**PHASE2_SESSION_SUMMARY.md**](docs/PHASE2_SESSION_SUMMARY.md) | Week 1 session notes |
-
----
-
-## Usage Examples
-
-### CLI Interface
-
-```bash
-python cli.py
-```
-
-```
-╔══════════════════════════════════════════════════════════╗
-║   Business Intelligence Orchestrator v2 - GPT-5 Ready   ║
-║                    Interactive CLI                       ║
-╚══════════════════════════════════════════════════════════╝
-
-Commands:
-  /help     - Show available commands
-  /clear    - Clear conversation history
-  /history  - Show conversation history
-  /quit     - Exit the CLI
-
-You: What pricing model should I use for a new SaaS product?
-
- Analyzing your query...
-
- Consulting agents: market, financial, leadgen
-
- Recommendation:
-
-[Comprehensive analysis with citations appears here...]
-```
-
-### API Interface
+### REST API
 
 ```bash
 # Start server
@@ -401,16 +265,14 @@ uvicorn src.main:app --reload
 ```python
 import requests
 
+# Run query
 response = requests.post(
     "http://localhost:8000/query",
-    json={
-        "query": "How can I reduce customer acquisition cost?",
-        "use_memory": True
-    }
+    json={"query": "How can I reduce churn?"}
 )
 
-result = response.json()
-print(result['recommendation'])
+# Get cache statistics
+stats = requests.get("http://localhost:8000/cache/stats")
 ```
 
 ### Python SDK
@@ -418,59 +280,196 @@ print(result['recommendation'])
 ```python
 from src.langgraph_orchestrator import LangGraphOrchestrator
 
-# Initialize orchestrator
+# Initialize with RAG
 orch = LangGraphOrchestrator(enable_rag=True)
 
-# Run query
+# Execute query
 result = orch.orchestrate(
-    query="What are best practices for SaaS onboarding?",
+    query="What are SaaS pricing best practices?",
     use_memory=False
 )
 
-print(f"Agents consulted: {result['agents_consulted']}")
-print(f"Recommendation: {result['recommendation']}")
-print(f"Market analysis: {result['detailed_findings']['market_analysis']}")
+print(result['recommendation'])
+print(result['agents_consulted'])
 ```
 
 ---
 
-## Development Workflow
+## Configuration
 
-### Setting Up Development Environment
+### Environment Variables
+
+```bash
+# Required
+OPENAI_API_KEY=sk-proj-...
+OPENAI_MODEL=gpt-5-nano
+
+# Optional (for cost savings)
+DEEPSEEK_API_KEY=sk-...
+MODEL_STRATEGY=hybrid  # or "gpt5" or "deepseek"
+
+# Optional (for tracing)
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_API_KEY=...
+
+# Cache configuration
+CACHE_ENABLED=true
+REDIS_URL=redis://localhost:6379/0
+```
+
+### Model Strategy
+
+- **gpt5**: Use GPT-5 for everything (highest quality)
+- **deepseek**: Use DeepSeek for everything (lowest cost)
+- **hybrid**: Smart routing (DeepSeek for most, GPT-5 fallback)
+
+---
+
+## Testing
+
+### Run Tests
+
+```bash
+# System tests
+python test_system.py
+
+# RAG integration (5 tests)
+python test_rag_system.py
+
+# Document automation
+python test_document_automation.py
+
+# Structured output
+python test_structured_output.py
+```
+
+### Run Benchmarks
+
+```bash
+# Quick test (3 queries)
+python eval/benchmark.py --mode both --num-queries 3 --no-judge
+
+# Full evaluation (25 queries)
+python eval/benchmark.py --mode both --num-queries 25
+```
+
+---
+
+## Deployment
+
+### Docker Compose
+
+```yaml
+# docker-compose.yml includes:
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  orchestrator:
+    build: .
+    ports: ["8000:8000"]
+    depends_on: [redis]
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+```
+
+### Production Considerations
+
+- Set up monitoring (Prometheus/Grafana)
+- Configure authentication and rate limiting
+- Use managed Redis (AWS ElastiCache, etc.)
+- Enable HTTPS with reverse proxy
+- Set appropriate resource limits
+
+---
+
+## Cost Analysis
+
+### Comparison (100 queries/day)
+
+| Model Strategy | Cost/Query | Monthly Cost | Annual Cost |
+|---------------|-----------|--------------|-------------|
+| GPT-5 only | $0.30 | $900 | $10,800 |
+| Hybrid (recommended) | $0.04 | $120 | $1,440 |
+| DeepSeek only | $0.003 | $9 | $108 |
+
+**Savings with Hybrid:** $780/month ($9,360/year)
+
+### Cache Benefits
+
+- First query: ~$0.003-0.004
+- Cached query: ~$0.000 (instant response)
+- Cache hit rate: 60-70% in production
+- Effective cost reduction: 90%+ vs GPT-5
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**Empty Agent Outputs**
+- Cause: GPT-5 reasoning_effort too high
+- Fix: Set to "low" in agent configurations
+- Reference: `docs/BUG_FIX_REPORT.md`
+
+**Semantic Scholar Rate Limiting**
+- System automatically falls back to arXiv
+- 7-day caching reduces API calls
+- Wait 1 minute between rapid tests
+
+**Cache Not Working**
+- Verify Redis is running: `docker ps | grep redis`
+- Check health endpoint: `curl http://localhost:8000/health`
+- View cache stats: `curl http://localhost:8000/cache/stats`
+
+**Docker Build Slow**
+- First build takes 10-15 minutes (ML dependencies)
+- Subsequent builds use cache
+- Pre-built image available (coming soon)
+
+---
+
+## Documentation
+
+### Key Documents
+
+- `docs/DOCUMENT_AUTOMATION.md` - Complete automation guide
+- `docs/PARALLEL_EXECUTION_COMPLETE.md` - Performance optimization
+- `docs/PICKUP_HERE.md` - Session resume guide
+- `docs/WEEK2_PLAN.md` - ML routing implementation
+- `docs/BUG_FIX_REPORT.md` - Known issues and fixes
+
+### API References
+
+- `docs/gpt5nano.md` - GPT-5 API documentation
+- `docs/phase2.md` - Technical specifications
+- `docs/readtom.md` - Architecture overview
+
+---
+
+## Development
+
+### Setup Development Environment
 
 ```bash
 # Create virtual environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Run tests
-python test_system.py         # Basic system tests
-python test_rag_system.py     # RAG integration tests
-```
-
-### Running Evaluations
-
-```bash
-# Quick test (3 queries, ~5 min)
-python eval/benchmark.py --mode both --num-queries 3 --no-judge
-
-# Full evaluation (25 queries, ~60 min, $15-20)
-python eval/benchmark.py --mode both --num-queries 25
-
-# RAG only
-python eval/benchmark.py --mode rag --num-queries 25
-
-# Without LLM judge (faster)
-python eval/benchmark.py --mode both --num-queries 5 --no-judge
+python test_system.py
+python test_rag_system.py
 ```
 
 ### Code Quality
 
 ```bash
-# Format code
+# Format
 black src/ eval/ *.py
 
 # Lint
@@ -480,252 +479,103 @@ flake8 src/ eval/ --max-line-length=120
 mypy src/ --ignore-missing-imports
 ```
 
-### Git Workflow
+### Contributing
 
-```bash
-# Check status
-git status
-
-# Verify no secrets
-git check-ignore .env  # Should output ".env"
-
-# Commit safely
-git add src/ eval/ docs/
-git commit -m "feat: your feature description"
-git push origin main
-```
-
-** IMPORTANT**: Never commit `.env` or files in `.gitignore`. See [`docs/SAFE_COMMIT_GUIDE.md`](docs/SAFE_COMMIT_GUIDE.md).
-
----
-
-## Testing & Evaluation
-
-### Test Suite
-
-| Test File | Purpose | Run Time |
-|-----------|---------|----------|
-| `test_system.py` | Basic system functionality | ~30s |
-| `test_rag_system.py` | RAG integration (5 tests) | ~5 min |
-| `eval/benchmark.py` | Full evaluation framework | Variable |
-
-### Test Results (Latest)
-
-**RAG System Tests** (5/5 passing):
--  Module imports
--  Research retrieval (Semantic Scholar + arXiv)
--  Research synthesis
--  Full orchestrator with RAG
--  RAG vs non-RAG comparison
-
-**Known Issues**:
-- Semantic Scholar rate limiting (429 errors) - graceful fallback to arXiv
-- Citations need manual verification via CLI
-
-### Evaluation Metrics
-
-The benchmark framework measures:
-
-| Metric | Description |
-|--------|-------------|
-| **Latency** | Total query processing time |
-| **Cost** | Estimated USD per query |
-| **Response Length** | Characters in output |
-| **Citation Count** | Number of citations detected |
-| **Routing Accuracy** | % of correct agents selected |
-| **Factuality** | 0-1 score from LLM judge |
-| **Helpfulness** | 0-1 score from LLM judge |
-| **Comprehensiveness** | 0-1 score from LLM judge |
-
----
-
-## Performance Metrics
-
-### Current Performance (Latest - Nov 13, 2025)
-
-| Metric | Current System | Previous | Improvement |
-|--------|---------------|----------|-------------|
-| **Simple Query Latency** | ~5s | N/A (new feature) | Instant answers |
-| **Business Query Latency** | 69s | 145s | 2.1x faster |
-| **Complex Query Latency** | 153s | 235s | 1.5x faster |
-| **Cost/Query** | $0.0026 | $0.28 (GPT-5) | 99% savings |
-| **ML Routing** | Probabilistic | Binary (0/1) | Real confidence scores |
-| **Agent Execution** | Parallel | Sequential | 3-4 agents run concurrently |
-| **Response Quality** | Same as GPT-5 | N/A | No degradation |
-| **Citations** | 3-10 (complex) | 3-10 | Conditional (as needed) |
-
-**Key Achievements:**
-- Parallel execution working: 2-3x speedup across all query types
-- Intelligent routing: Simple queries bypass agents entirely
-- Probabilistic ML: Real confidence scores enable smart fallback
-- Cost efficiency maintained: Still 99% cheaper than GPT-5
-
-### Benchmark Results
-
- **Visual Analysis**: [`eval/benchmark_analysis.pdf`](eval/benchmark_analysis.pdf)
-- Plot 1: Routing accuracy per query (2/10 perfect, 8/10 missed agents)
-- Plot 2: Latency per query (91-179s range, avg 145s)
-
- **Raw Data**: [`eval/benchmark_results_10queries.csv`](eval/benchmark_results_10queries.csv)
-- Per-agent costs, models, confidence scores
-- Routing decisions (expected vs actual)
-- False negatives/positives identified
-
-### What Was Fixed
-
-**Parallel Agent Execution (Complete)**
-- Was: Sequential execution, 145s for business queries
-- Now: Parallel execution using asyncio thread pools
-- Result: 69s for business queries (2.1x faster)
-
-**ML Routing Confidence (Complete)**
-- Was: Binary 0/1 predictions, no uncertainty handling
-- Now: Probabilistic scores (0.0-1.0), confidence-based fallback
-- Result: Real confidence metrics, smart GPT-5 fallback when uncertain
-
-**Query Complexity Routing (Complete)**
-- Was: All queries routed through full agent pipeline
-- Now: Simple queries get instant answers, complex get research
-- Result: Simple queries under 5s, research only when needed
-
-### Remaining Optimizations
-
-**Training Data Quality (Next Priority)**
-- Current: 125 training examples, some imbalanced
-- Need: 50+ more examples for underperforming agents (leadgen, market edge cases)
-- Impact: Expected 75-85% routing accuracy with better training
-
-**Production Monitoring (Infrastructure)**
-- Add query latency tracking
-- Monitor routing decisions and accuracy
-- Alert on API failures or slow queries
-- Cost tracking per query type
-
-**LLM Judge Fixes (Evaluation)**
-- Fix evaluation framework for quality scoring
-- Add automated testing for routing decisions
-- Benchmark new improvements
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-#### 1. Empty Agent Outputs
-
-**Symptom**: Agents return 0-character responses
-
-**Cause**: GPT-5 `reasoning_effort` too high (using all tokens for reasoning)
-
-**Fix**: See [`docs/BUG_FIX_REPORT.md`](docs/BUG_FIX_REPORT.md) - already fixed in current version
-
-#### 2. Semantic Scholar Rate Limiting
-
-**Symptom**: `429 Client Error` from Semantic Scholar
-
-**Solution**:
-- System automatically falls back to arXiv
-- 7-day caching reduces API calls by 60%
-- Wait 1 minute between test runs
-
-#### 3. Empty Benchmark Results
-
-**Symptom**: `Average Response Length: 0.0 chars`
-
-**Solution**:
-- Check if agents are producing output: `python test_fixes.py`
-- Verify GPT-5 API key is valid
-- See troubleshooting in [`docs/BUG_FIX_REPORT.md`](docs/BUG_FIX_REPORT.md)
-
-#### 4. LangSmith Not Tracing
-
-**Symptom**: No traces visible in LangSmith dashboard
-
-**Solution**:
-```bash
-# Check environment variables
-python -c "from src.config import Config; print(f'Tracing: {Config.LANGCHAIN_TRACING_V2}')"
-
-# Should print: Tracing: true
-# If false, check .env file
-```
-
-### Getting Help
-
-1. **Check Documentation**: [`docs/`](docs/) folder
-2. **Read Bug Reports**: [`docs/BUG_FIX_REPORT.md`](docs/BUG_FIX_REPORT.md)
-3. **Run Tests**: `python test_system.py`
-4. **Check LangSmith**: View traces at https://smith.langchain.com
-
----
-
-## Contributing
-
-### Development Setup
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/your-feature`
+1. Fork repository
+2. Create feature branch
 3. Make changes with tests
-4. Run test suite: `python test_system.py && python test_rag_system.py`
-5. Commit: `git commit -m "feat: your feature"`
-6. Push: `git push origin feature/your-feature`
-7. Create Pull Request
+4. Run test suite
+5. Submit pull request
 
-### Code Standards
-
-- **Style**: Black formatter, 120 char line length
-- **Types**: Type hints for all functions
-- **Docs**: Docstrings for all public methods
-- **Tests**: Unit tests for new features
-- **Commits**: Conventional Commits format
-
-### Areas for Contribution
-
-- [x] Parallel agent execution implementation (completed Nov 13, 2025)
-- [x] Query complexity classification (completed Nov 13, 2025)
-- [x] ML routing with confidence scores (completed Nov 13, 2025)
-- [ ] Additional research sources (Google Scholar, PubMed)
-- [ ] Complete ML classifier retraining with more data
-- [ ] Performance optimization (caching, streaming responses)
-- [ ] Additional agent types (technical architecture, HR/talent)
-- [ ] Web UI frontend
-- [ ] Documentation improvements
+**Code Standards:**
+- Black formatter (120 char lines)
+- Type hints for all functions
+- Docstrings for public methods
+- Conventional Commits format
 
 ---
 
-## Quick Links
+## Use Cases
 
-### Documentation
-- [Complete Documentation](docs/)
-- [Resume Work Here](docs/PICKUP_HERE.md)
-- [Latest Bug Fixes](docs/BUG_FIX_REPORT.md)
-- [Week 2 Plan](docs/WEEK2_PLAN.md)
+### Business Consulting
 
-### API Reference
-- [GPT-5 API Docs](docs/gpt5nano.md)
-- [Architecture](docs/claude.md)
-- [Test Findings](docs/PHASE2_TEST_FINDINGS.md)
+- Comprehensive business analysis
+- Strategic planning recommendations
+- Market research with citations
+- Competitive analysis
 
-### External
-- [LangSmith Dashboard](https://smith.langchain.com)
-- [LangGraph Docs](https://langchain-ai.github.io/langgraph/)
-- [OpenAI API](https://platform.openai.com/docs)
+### Financial Analysis
+
+- Unit economics modeling
+- Pricing strategy optimization
+- ROI calculations
+- Revenue projections
+
+### Operations Consulting
+
+- Process optimization
+- Efficiency analysis
+- Resource allocation
+- Workflow improvements
+
+### Growth Strategy
+
+- Customer acquisition planning
+- Retention optimization
+- Market expansion analysis
+- Lead generation strategies
 
 ---
 
-## Project Info
+## Roadmap
 
-- **Built for**: ValtricAI Consulting
-- **Purpose**: Research-augmented business intelligence
-- **Academic Use**: NYU transfer portfolio demonstration
-- **Technology**: GPT-5, DeepSeek v3.2-Exp, LangGraph, LangSmith, ChromaDB
-- **Status**: Phase 2 Week 3 - Production Optimization
-- **Last Updated**: November 13, 2025
+### Completed
+
+- Core multi-agent system
+- Research augmentation (RAG)
+- ML routing classifier
+- Parallel execution
+- Redis caching
+- Document automation (PowerPoint + Excel)
+- Docker deployment
+
+### In Progress
+
+- ML classifier retraining (77% → 95% accuracy)
+- Production monitoring
+- Performance optimization
+
+### Planned
+
+- Additional research sources (Google Scholar, PubMed)
+- Web UI frontend
+- Additional agent types
+- Advanced caching strategies
+- Multi-language support
 
 ---
 
-<p align="center">
-  <b>Built with GPT-5, LangGraph, and LangSmith</b><br>
-  <i>Production-ready multi-agent business intelligence with research augmentation</i>
-</p>
+## License
+
+[Add your license here]
+
+## Project Information
+
+- **Built for:** Self-hosted business intelligence
+- **Technology:** GPT-5, DeepSeek, LangGraph, FastAPI, Docker
+- **Status:** Production-ready (Phase 3 complete)
+- **Last Updated:** November 15, 2025
+
+---
+
+## Support
+
+For issues, questions, or contributions:
+- Check documentation in `docs/`
+- Review troubleshooting section
+- Run test suite for diagnostics
+- Create GitHub issue with details
+
+---
+
+Built with LangGraph, FastAPI, and modern LLM technology for self-hosted business intelligence.
