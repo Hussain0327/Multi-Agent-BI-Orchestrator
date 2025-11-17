@@ -160,7 +160,7 @@ git push origin main
 10:20 - 11:20   Task 5: Write report (while eval runs)    [60 min]
 12:00 - 12:30   Task 4: Statistical analysis              [30 min]
 12:30 - 12:45   Task 6: Git commit                        [15 min]
-──────────────────────────────────────────────────────────
+
 Total: ~4 hours active work
        ~2 hours waiting for evaluation
 ```

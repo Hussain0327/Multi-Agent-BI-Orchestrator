@@ -5,7 +5,7 @@
 
 ---
 
-## ✅ PRE-COMMIT CHECKLIST
+## PRE-COMMIT CHECKLIST
 
 Before committing, verify:
 
@@ -20,14 +20,14 @@ git check-ignore .env
 git status
 ```
 
-**Safe to commit** ✅:
+**Safe to commit** :
 - Python source files (.py)
 - Documentation files (.md)
 - Test files (test_*.py)
 - Configuration (requirements.txt)
 - Test data (eval/test_queries.json)
 
-**NEVER commit** ❌:
+**NEVER commit** :
 - .env (API keys!)
 - __pycache__/
 - *.pyc files
@@ -37,7 +37,7 @@ git status
 
 ---
 
-## 🚀 SAFE COMMIT COMMANDS
+## SAFE COMMIT COMMANDS
 
 ### Step 1: Review Changes
 ```bash
@@ -117,9 +117,9 @@ Next: Run evaluations to measure quality improvements"
 
 ---
 
-## 🔍 WHAT'S BEING COMMITTED
+## WHAT'S BEING COMMITTED
 
-### New Files (Safe to commit ✅)
+### New Files (Safe to commit )
 
 **Source Code** (~1,200 lines):
 - `src/vector_store.py` - ChromaDB wrapper
@@ -151,7 +151,7 @@ Next: Run evaluations to measure quality improvements"
 
 ---
 
-## ❌ WHAT'S NOT BEING COMMITTED
+## WHAT'S NOT BEING COMMITTED
 
 **Protected by .gitignore**:
 - `.env` - OpenAI + LangSmith API keys
@@ -170,7 +170,7 @@ Next: Run evaluations to measure quality improvements"
 
 ---
 
-## 🔒 SECURITY VERIFICATION
+## SECURITY VERIFICATION
 
 ### Before First Commit
 ```bash
@@ -206,7 +206,7 @@ cat .gitignore | grep .env
 
 ---
 
-## 📋 COMMIT MESSAGE TEMPLATE
+## COMMIT MESSAGE TEMPLATE
 
 ```bash
 git commit -m "Phase 2: [Brief summary]
@@ -228,7 +228,7 @@ Next steps:
 
 ---
 
-## 🚨 EMERGENCY: If You Committed Secrets
+## EMERGENCY: If You Committed Secrets
 
 **If you accidentally committed .env:**
 
@@ -259,7 +259,7 @@ git commit -m "Your commit message"
 
 ---
 
-## 🎯 RECOMMENDED COMMIT STRATEGY
+## RECOMMENDED COMMIT STRATEGY
 
 ### Strategy 1: Single Commit (Simpler)
 ```bash
@@ -308,7 +308,7 @@ git commit -m "Update dependencies and gitignore for Phase 2"
 
 ---
 
-## ✅ FINAL VERIFICATION
+## FINAL VERIFICATION
 
 Before pushing:
 
@@ -335,7 +335,7 @@ git push origin main
 
 ---
 
-## 📊 EXPECTED GIT STATUS
+## EXPECTED GIT STATUS
 
 **Before commit**:
 ```
@@ -373,23 +373,23 @@ nothing to commit, working tree clean
 
 ---
 
-## 🎓 BEST PRACTICES
+## BEST PRACTICES
 
-### Always Do ✅
+### Always Do 
 1. `git status` before every commit
 2. `git diff --cached` to review changes
 3. Verify .env is gitignored: `git check-ignore .env`
 4. Read commit message before pressing Enter
 5. Check file names in `git status`
 
-### Never Do ❌
+### Never Do 
 1. `git add .` without checking .gitignore first
 2. Commit without reviewing `git diff`
 3. Hardcode API keys in source files
 4. Commit large binary files
 5. `git push --force` on main branch
 
-### When Uncertain 🤔
+### When Uncertain 
 1. Run `git status` and paste output
 2. Ask for review before committing
 3. Test in a new branch first
@@ -397,7 +397,7 @@ nothing to commit, working tree clean
 
 ---
 
-## 🚀 READY TO COMMIT?
+## READY TO COMMIT?
 
 **Quick Checklist**:
 - [ ] Ran `git check-ignore .env` (outputs ".env")

@@ -1,7 +1,7 @@
 # Bug Fix Report: Phase 2 Evaluation Framework
 **Date**: November 5, 2025
 **Session**: Emergency bug fix after evaluation failures
-**Status**: ✅ **ALL BUGS FIXED AND VALIDATED**
+**Status**:  **ALL BUGS FIXED AND VALIDATED**
 
 ---
 
@@ -40,23 +40,23 @@ From user's evaluation runs:
 ```
 BENCHMARK SUMMARY - NO_RAG MODE (25 queries)
 ======================================================================
-📊 Performance Metrics:
+ Performance Metrics:
   Average Latency:        34.622s
   Average Cost:           $0.282
-  Average Response Length: 0.0 chars          ❌ BROKEN
+  Average Response Length: 0.0 chars           BROKEN
 
-📚 Citation Metrics:
-  Average Citations:      0.0                  ❌ BROKEN
-  Citation Rate:          0.0%                 ❌ BROKEN
-  Has References:         0.0%                 ❌ BROKEN
+ Citation Metrics:
+  Average Citations:      0.0                   BROKEN
+  Citation Rate:          0.0%                  BROKEN
+  Has References:         0.0%                  BROKEN
 
-⭐ Quality Metrics (LLM Judge):
-  Factuality:             0.50/1.0             ❌ DEFAULT FALLBACK
-  Helpfulness:            0.50/1.0             ❌ DEFAULT FALLBACK
-  Comprehensiveness:      0.50/1.0             ❌ DEFAULT FALLBACK
+ Quality Metrics (LLM Judge):
+  Factuality:             0.50/1.0              DEFAULT FALLBACK
+  Helpfulness:            0.50/1.0              DEFAULT FALLBACK
+  Comprehensiveness:      0.50/1.0              DEFAULT FALLBACK
 
-🎯 Routing Metrics:
-  Routing Accuracy:       60.4%                ⚠️ LOW
+ Routing Metrics:
+  Routing Accuracy:       60.4%                 LOW
 ```
 
 **RAG mode showed identical symptoms**: All responses empty, all metrics invalid.
@@ -75,7 +75,7 @@ BENCHMARK SUMMARY - NO_RAG MODE (25 queries)
 
 ## Bug #1: GPT-5 Response Extraction Returns Empty (ROOT CAUSE)
 
-### Severity: ❌ **CRITICAL - SYSTEM BREAKING**
+### Severity:  **CRITICAL - SYSTEM BREAKING**
 
 ### Location
 Multiple files using `GPT5Wrapper.generate()` with `reasoning_effort="medium"` or `"high"`
@@ -109,10 +109,10 @@ Testing different reasoning effort levels with `max_output_tokens=1500`:
 
 | Reasoning Effort | Output Text Length | Reasoning Tokens | Output Tokens | Status |
 |------------------|-------------------|------------------|---------------|--------|
-| **minimal** | 6,717 chars | 0 | 1,488 | ✅ Works |
-| **low** | 6,163 chars | 192 | 1,465 | ✅ Works |
-| **medium** | **0 chars** | 1,472 | 1,472 | ❌ **BROKEN** |
-| **high** | **0 chars** | 1,472 | 1,472 | ❌ **BROKEN** |
+| **minimal** | 6,717 chars | 0 | 1,488 |  Works |
+| **low** | 6,163 chars | 192 | 1,465 |  Works |
+| **medium** | **0 chars** | 1,472 | 1,472 |  **BROKEN** |
+| **high** | **0 chars** | 1,472 | 1,472 |  **BROKEN** |
 
 ### Impact
 
@@ -135,7 +135,7 @@ All agents were using problematic settings:
 return self.gpt5.generate(
     input_text=user_prompt,
     instructions=self.system_prompt,
-    reasoning_effort="medium",  # ❌ Uses all tokens!
+    reasoning_effort="medium",  #  Uses all tokens!
     text_verbosity="high",
     max_output_tokens=1500
 )
@@ -153,7 +153,7 @@ return self.gpt5.generate(
 
 ## Bug #2: LLM Judge JSON Parsing Failure
 
-### Severity: ❌ **CRITICAL** (Cascade from Bug #1)
+### Severity:  **CRITICAL** (Cascade from Bug #1)
 
 ### Location
 `eval/benchmark.py:202-230` - `run_llm_judge_evaluation()` method
@@ -165,13 +165,13 @@ LLM judge attempts to parse JSON from GPT-5 response:
 ```python
 judge_response = self.judge.generate(
     input_text=judge_prompt,
-    reasoning_effort="high",  # ❌ Bug #1!
+    reasoning_effort="high",  #  Bug #1!
     text_verbosity="low",
     max_output_tokens=100
 )
 
 # Parse JSON from response
-scores = json.loads(judge_response_clean)  # ❌ FAILS!
+scores = json.loads(judge_response_clean)  #  FAILS!
 ```
 
 **Error**: `Expecting value: line 1 column 1 (char 0)`
@@ -185,11 +185,11 @@ Bug #1 cascade: `judge_response` is empty string `""`, so `json.loads("")` raise
 All quality scores defaulted to fallback values:
 ```python
 except Exception as e:
-    print(f"⚠️  LLM judge failed: {e}")
+    print(f"  LLM judge failed: {e}")
     return {
-        "factuality": 0.5,      # ❌ Meaningless default
-        "helpfulness": 0.5,     # ❌ Meaningless default
-        "comprehensiveness": 0.5  # ❌ Meaningless default
+        "factuality": 0.5,      #  Meaningless default
+        "helpfulness": 0.5,     #  Meaningless default
+        "comprehensiveness": 0.5  #  Meaningless default
     }
 ```
 
@@ -198,16 +198,16 @@ except Exception as e:
 ### Evidence from Logs
 
 ```
-🔍 Running LLM judge...
-⚠️  LLM judge failed: Expecting value: line 1 column 1 (char 0)
-✓ Scores: F=0.50, H=0.50, C=0.50
+ Running LLM judge...
+  LLM judge failed: Expecting value: line 1 column 1 (char 0)
+ Scores: F=0.50, H=0.50, C=0.50
 ```
 
 ---
 
 ## Bug #3: Zero Citations Despite Research Retrieved
 
-### Severity: ❌ **HIGH** (Cascade from Bug #1)
+### Severity:  **HIGH** (Cascade from Bug #1)
 
 ### Location
 `eval/benchmark.py:333-341` - `_count_citations()` method
@@ -233,12 +233,12 @@ citation_count = self._count_citations(result.get("recommendation", ""))
 **RAG mode showed 0 citations despite successfully retrieving papers:**
 
 ```
-📚 Retrieving academic research...
-✓ Retrieved 3 relevant papers            ✅ Research works!
-✓ Research synthesis complete
-  ✓ Latency: 41.99s
-  ✓ Agents: ['market', 'operations', 'financial', 'leadgen']
-  ✓ Citations: 0                         ❌ But no citations detected
+ Retrieving academic research...
+ Retrieved 3 relevant papers             Research works!
+ Research synthesis complete
+   Latency: 41.99s
+   Agents: ['market', 'operations', 'financial', 'leadgen']
+   Citations: 0                          But no citations detected
 ```
 
 **Result**: Cannot prove RAG adds value via citations.
@@ -251,7 +251,7 @@ Bug #1 cascade: Agents receive research context but produce no output, so citati
 
 ## Bug #4: Multi-Agent Routing Logic Broken
 
-### Severity: ⚠️ **MEDIUM** (Masked by Bug #1)
+### Severity:  **MEDIUM** (Masked by Bug #1)
 
 ### Location
 `src/langgraph_orchestrator.py:230-240` - `_route_to_agents()` method
@@ -271,7 +271,7 @@ def _route_to_agents(self, state: AgentState) -> str:
     # Return first agent to call (others will be called in parallel)
     # Note: This is a limitation of the current routing approach
     # For true parallelization, we'll execute all agents asynchronously in one node
-    return agents_to_call[0] if len(agents_to_call) == 1 else "market"  # ❌ BUG!
+    return agents_to_call[0] if len(agents_to_call) == 1 else "market"  #  BUG!
 ```
 
 ### The Bug
@@ -309,11 +309,11 @@ Bug #1 caused even the market agent to return empty output, so the impact of thi
 
 ```
 Router
-  ├─→ (conditional) → Market Agent ──┐
-  ├─→ (conditional) → Operations ────┤
-  ├─→ (conditional) → Financial ─────┼─→ Synthesis
-  ├─→ (conditional) → LeadGen ───────┘
-  └─→ (conditional) → Synthesis
+  → (conditional) → Market Agent 
+  → (conditional) → Operations 
+  → (conditional) → Financial → Synthesis
+  → (conditional) → LeadGen 
+  → (conditional) → Synthesis
 ```
 
 Only ONE path taken due to conditional routing bug.
@@ -425,7 +425,7 @@ if self.enable_rag:
     # Research synthesis → First agent
     workflow.add_conditional_edges(
         "research_synthesis",
-        self._route_to_agents,  # ❌ Only routes to ONE agent!
+        self._route_to_agents,  #  Only routes to ONE agent!
         {
             "market": "market_agent",
             "operations": "operations_agent",
@@ -438,7 +438,7 @@ else:
     # Direct routing without research synthesis
     workflow.add_conditional_edges(
         "router",
-        self._route_to_agents,  # ❌ Only routes to ONE agent!
+        self._route_to_agents,  #  Only routes to ONE agent!
         {
             "market": "market_agent",
             "operations": "operations_agent",
@@ -494,20 +494,20 @@ python3 test_fixes.py
 **Results:**
 ```
 Agents consulted: ['market', 'financial', 'leadgen', 'operations']
-Recommendation length: 9423 chars  ✅
+Recommendation length: 9423 chars  
 Recommendation preview: Executive Summary
 You are launching a SaaS product with AI/data capabilities...
 
 Detailed findings:
-  market_analysis: 4459 chars      ✅
-  operations_audit: 4834 chars     ✅
-  financial_modeling: 3951 chars   ✅
-  lead_generation: 4823 chars      ✅
+  market_analysis: 4459 chars      
+  operations_audit: 4834 chars     
+  financial_modeling: 3951 chars   
+  lead_generation: 4823 chars      
 
 Expected agents: {'leadgen', 'market', 'financial', 'operations'}
 Agents with output: {'leadgeneration', 'marketanalysis', 'operationsaudit', 'financialmodeling'}
 
-✅ ALL FIXES WORKING! Agents produce output and synthesis works!
+ ALL FIXES WORKING! Agents produce output and synthesis works!
 ```
 
 ### Test 2: Benchmark Framework (3 queries)
@@ -523,18 +523,18 @@ BENCHMARK SUMMARY - NO_RAG MODE
 
 Queries: 3/3 successful
 
-📊 Performance Metrics:
+ Performance Metrics:
   Average Latency:        83.49s
   Average Cost:           $0.3
-  Average Response Length: 9741.0 chars  ✅ (was 0.0!)
+  Average Response Length: 9741.0 chars   (was 0.0!)
 
-📚 Citation Metrics:
-  Average Citations:      0.0            ✅ (expected for non-RAG)
-  Citation Rate:          0.0%           ✅ (expected for non-RAG)
-  Has References:         0.0%           ✅ (expected for non-RAG)
+ Citation Metrics:
+  Average Citations:      0.0             (expected for non-RAG)
+  Citation Rate:          0.0%            (expected for non-RAG)
+  Has References:         0.0%            (expected for non-RAG)
 
-🎯 Routing Metrics:
-  Routing Accuracy:       66.7%          ✅ (will improve with more queries)
+ Routing Metrics:
+  Routing Accuracy:       66.7%           (will improve with more queries)
 
 ======================================================================
 ```
@@ -570,11 +570,11 @@ Queries: 3/3 successful
 
 | Metric | Before (Broken) | After (Fixed) | Status |
 |--------|----------------|---------------|--------|
-| **Response Length** | Always 0 | 8,000-12,000 chars | ✅ Valid |
-| **Quality Scores** | Always 0.50 | Will vary 0.60-0.90 | ✅ Valid |
-| **Citation Count** | Always 0 | Will vary 0-10+ | ✅ Valid |
-| **Routing Accuracy** | Artificially low | Accurate measurement | ✅ Valid |
-| **Latency** | Artificially fast | Realistic timing | ✅ Valid |
+| **Response Length** | Always 0 | 8,000-12,000 chars |  Valid |
+| **Quality Scores** | Always 0.50 | Will vary 0.60-0.90 |  Valid |
+| **Citation Count** | Always 0 | Will vary 0-10+ |  Valid |
+| **Routing Accuracy** | Artificially low | Accurate measurement |  Valid |
+| **Latency** | Artificially fast | Realistic timing |  Valid |
 
 ---
 
@@ -589,13 +589,13 @@ Queries: 3/3 successful
 
 ### Complete File List
 
-1. ✅ `src/agents/market_analysis.py` - Line 76: reasoning_effort → "low"
-2. ✅ `src/agents/operations_audit.py` - Line 74: reasoning_effort → "low"
-3. ✅ `src/agents/financial_modeling.py` - Line 86: reasoning_effort → "low"
-4. ✅ `src/agents/lead_generation.py` - Line 80: reasoning_effort → "low"
-5. ✅ `src/agents/research_synthesis.py` - Line 134: reasoning_effort → "low"
-6. ✅ `src/langgraph_orchestrator.py` - Line 337: reasoning_effort → "low"
-7. ✅ `src/langgraph_orchestrator.py` - Lines 97-111: Sequential agent chain
+1.  `src/agents/market_analysis.py` - Line 76: reasoning_effort → "low"
+2.  `src/agents/operations_audit.py` - Line 74: reasoning_effort → "low"
+3.  `src/agents/financial_modeling.py` - Line 86: reasoning_effort → "low"
+4.  `src/agents/lead_generation.py` - Line 80: reasoning_effort → "low"
+5.  `src/agents/research_synthesis.py` - Line 134: reasoning_effort → "low"
+6.  `src/langgraph_orchestrator.py` - Line 337: reasoning_effort → "low"
+7.  `src/langgraph_orchestrator.py` - Lines 97-111: Sequential agent chain
 
 ### Git Diff Summary
 
@@ -615,8 +615,8 @@ src/langgraph_orchestrator.py          | 25 +++++++++++++------------
 
 ### Immediate (Now)
 
-1. ✅ **Validate all fixes** - COMPLETE
-2. 🔄 **Re-run full 25-query evaluation** - READY TO START
+1.  **Validate all fixes** - COMPLETE
+2.  **Re-run full 25-query evaluation** - READY TO START
    ```bash
    # This will take ~60-90 minutes and cost ~$15-20
    python3 eval/benchmark.py --mode both --num-queries 25
@@ -624,37 +624,37 @@ src/langgraph_orchestrator.py          | 25 +++++++++++++------------
 
 ### Short-term (Today/Tomorrow)
 
-3. 📊 **Analyze results and generate report**
+3.  **Analyze results and generate report**
    - Compare RAG vs non-RAG quality
    - Statistical significance testing (t-test)
    - Document actual performance metrics
    - Update WEEK2_PLAN.md with findings
 
-4. 📝 **Document lessons learned**
+4.  **Document lessons learned**
    - GPT-5 reasoning effort best practices
    - Token budget management
    - Testing strategies for complex systems
 
 ### Medium-term (Week 2 Remaining)
 
-5. 🤖 **Week 2B: ML Routing Classifier**
+5.  **Week 2B: ML Routing Classifier**
    - Export LangSmith traces
    - Train SetFit classifier
    - Replace GPT-5 routing with ML
 
-6. 🧪 **Week 2C: A/B Testing Framework**
+6.  **Week 2C: A/B Testing Framework**
    - Build traffic splitting
    - Implement statistical testing
    - Run 3-day A/B test
 
 ### Long-term (Week 3+)
 
-7. ⚡ **Performance Optimization**
+7.  **Performance Optimization**
    - Implement true parallel agent execution
    - Reduce latency from 80s → 15s target
    - Optimize research retrieval
 
-8. 🚀 **Production Deployment**
+8.  **Production Deployment**
    - Monitoring and alerting
    - Error handling improvements
    - Scale testing
@@ -727,12 +727,12 @@ src/langgraph_orchestrator.py          | 25 +++++++++++++------------
 This bug fix session resolved **4 critical bugs** that completely invalidated Phase 2 Week 2 evaluation results. The root cause was GPT-5's `reasoning_effort` parameter consuming all output tokens, leaving zero for actual text generation.
 
 **Key Achievements:**
-- ✅ Fixed 6 files with reasoning effort adjustments
-- ✅ Restructured LangGraph workflow for reliable multi-agent execution
-- ✅ Validated fixes produce 9,000+ character outputs
-- ✅ All evaluation metrics now functional
+-  Fixed 6 files with reasoning effort adjustments
+-  Restructured LangGraph workflow for reliable multi-agent execution
+-  Validated fixes produce 9,000+ character outputs
+-  All evaluation metrics now functional
 
-**System Status**: 🚀 **READY FOR PRODUCTION EVALUATION**
+**System Status**:  **READY FOR PRODUCTION EVALUATION**
 
 The system can now accurately measure quality improvements from RAG integration and prove the +18% quality hypothesis with valid data.
 

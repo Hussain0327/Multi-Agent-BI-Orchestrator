@@ -19,7 +19,7 @@
 
 ### Phase A: Evaluation Harness (Days 1-2)
 
-#### Task A1: Create Test Query Suite ✅ STARTING
+#### Task A1: Create Test Query Suite  STARTING
 **File**: `eval/test_queries.json`
 
 **Requirements**:
@@ -357,8 +357,8 @@ results = ab_test.analyze()
 ## Implementation Schedule
 
 ### Day 1 (Today)
-- ✅ Create test query suite (1-2 hours)
-- ✅ Build evaluation framework (4-6 hours)
+-  Create test query suite (1-2 hours)
+-  Build evaluation framework (4-6 hours)
 - ⏳ Run baseline evaluation (1 hour)
 
 ### Day 2
@@ -389,15 +389,15 @@ results = ab_test.analyze()
 ## Success Metrics
 
 ### Must-Have (Critical)
-- ✅ Evaluation harness functional
-- ✅ Baseline metrics collected
-- ✅ RAG metrics collected
-- ✅ Statistical significance calculated
+-  Evaluation harness functional
+-  Baseline metrics collected
+-  RAG metrics collected
+-  Statistical significance calculated
 
 ### Should-Have (Important)
-- ✅ ML classifier trained (>90% accuracy)
-- ✅ ML routing integrated
-- ✅ A/B test framework functional
+-  ML classifier trained (>90% accuracy)
+-  ML routing integrated
+-  A/B test framework functional
 
 ### Nice-to-Have (Optional)
 - ⏳ A/B test completed (3-day wait)
@@ -431,8 +431,8 @@ results = ab_test.analyze()
 ## Deliverables
 
 ### Code Deliverables
-1. ✅ `eval/test_queries.json` - Test suite
-2. ✅ `eval/benchmark.py` - Evaluation framework
+1.  `eval/test_queries.json` - Test suite
+2.  `eval/benchmark.py` - Evaluation framework
 3. ⏳ `scripts/export_langsmith_data.py` - Data export
 4. ⏳ `src/ml/routing_classifier.py` - ML model
 5. ⏳ `src/ab_testing.py` - A/B testing

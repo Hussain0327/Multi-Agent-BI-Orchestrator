@@ -3,67 +3,67 @@
 ## Enhanced Business Intelligence Orchestrator with GPT-5, LangGraph & LangSmith
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                   User Input Layer                      │
-│              (CLI / FastAPI / Web UI)                   │
-└────────────────────┬────────────────────────────────────┘
-                     │
-┌─────────────────────────────────────────────────────────┐
-│                  LangSmith Layer                        │
-│         (Tracing, Evaluation, Monitoring)               │
-│    - Request/Response logging                           │
-│    - Token usage tracking                               │
-│    - Performance metrics                                │
-│    - Error tracking                                     │
-└────────────────────┬────────────────────────────────────┘
-                     │
-┌─────────────────────────────────────────────────────────┐
-│               LangGraph Orchestrator                    │
-│          (State Machine for Agent Routing)              │
-│                                                         │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐         │
-│  │  Router  │───>│ Parallel │───>│Synthesis │         │
-│  │   Node   │    │Execution │    │   Node   │         │
-│  │(Semantic)│    │  (Async) │    │ (GPT-5)  │         │
-│  └──────────┘    └──────────┘    └──────────┘         │
-│       │                                                 │
-│       └─> Determines which agents to invoke            │
-└────────────────────┬────────────────────────────────────┘
-                     │
-        ┌────────────┼────────────┬───────────────┐
-        ▼            ▼            ▼               ▼
-┌──────────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
-│   Market     │ │Operations│ │ Financial│ │   Lead   │
-│   Agent      │ │  Agent   │ │  Agent   │ │   Gen    │
-│              │ │          │ │          │ │  Agent   │
-│  GPT-5-nano  │ │GPT-5-nano│ │GPT-5-nano│ │GPT-5-nano│
-│  Responses   │ │Responses │ │Responses │ │Responses │
-│     API      │ │   API    │ │   API    │ │   API    │
-└──────┬───────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘
-       │              │            │             │
-       └──────────────┴────────────┴─────────────┘
-                      │
-       ┌──────────────┴──────────────┐
-       ▼                             ▼
-┌─────────────────┐          ┌──────────────────┐
-│ Native GPT-5    │          │  LangChain Tools │
-│     Tools       │          │                  │
-│  - web_search   │          │  - Calculator    │
-│  - code_interp  │          │  - Custom tools  │
-│  - file_search  │          │                  │
-└─────────────────┘          └──────────────────┘
+
+                   User Input Layer                      
+              (CLI / FastAPI / Web UI)                   
+
+                     
+
+                  LangSmith Layer                        
+         (Tracing, Evaluation, Monitoring)               
+    - Request/Response logging                           
+    - Token usage tracking                               
+    - Performance metrics                                
+    - Error tracking                                     
+
+                     
+
+               LangGraph Orchestrator                    
+          (State Machine for Agent Routing)              
+                                                         
+                   
+    Router  > Parallel >Synthesis          
+     Node       Execution        Node            
+  (Semantic)      (Async)      (GPT-5)           
+                   
+                                                        
+       > Determines which agents to invoke            
+
+                     
+        
+                                               
+   
+   Market      Operations  Financial    Lead   
+   Agent         Agent      Agent       Gen    
+                                       Agent   
+  GPT-5-nano   GPT-5-nano GPT-5-nano GPT-5-nano
+  Responses    Responses  Responses  Responses 
+     API          API        API        API    
+   
+                                              
+       
+                      
+       
+                                    
+          
+ Native GPT-5                LangChain Tools 
+     Tools                                   
+  - web_search               - Calculator    
+  - code_interp              - Custom tools  
+  - file_search                              
+          
 
 Phase 2 Additions (Coming Next):
-       │
-       ┌──────────────┴────────
-       ──────┐
-       ▼                             ▼
-┌──────────────────┐        ┌──────────────────┐
-│  LangChain RAG   │        │  ML Models Layer │
-│  - Vector Store  │        │  - Reranker      │
-│  - Embeddings    │        │  - Classifier    │
-│  - Retrieval     │        │  - Fine-tuned    │
-└──────────────────┘        └──────────────────┘
+       
+       
+       
+                                    
+        
+  LangChain RAG             ML Models Layer 
+  - Vector Store            - Reranker      
+  - Embeddings              - Classifier    
+  - Retrieval               - Fine-tuned    
+        
 ```
 
 ## Key Improvements in Phase 1:
@@ -264,36 +264,36 @@ Given your **weekly shipped deliverables** commitment and **Spring 2026 transfer
 Ship the MVP, track metrics for 4 weeks, then decide whether to publish or pivot based on the data.
 
 
-┌─────────────────────────────────────────────────────────┐
-│                    LangSmith Layer                      │
-│          (Tracing, Evaluation, Monitoring)              │
-└─────────────────────────────────────────────────────────┘
-                            │
-┌─────────────────────────────────────────────────────────┐
-│                  LangGraph Orchestrator                 │
-│           (State Machine for Agent Routing)             │
-│                                                         │
-│  ┌─────────┐    ┌──────────┐    ┌──────────┐          │
-│  │ Router  │───>│ Parallel │───>│Synthesis │          │
-│  │  Node   │    │Execution │    │   Node   │          │
-│  └─────────┘    └──────────┘    └──────────┘          │
-└─────────────────────────────────────────────────────────┘
-                            │
-        ┌───────────────────┼───────────────────┐
-        ▼                   ▼                   ▼
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   Market     │    │  Operations  │    │  Financial   │
-│   Agent      │    │    Agent     │    │    Agent     │
-│ + RAG + ML   │    │  + RAG + ML  │    │  + RAG + ML  │
-└──────────────┘    └──────────────┘    └──────────────┘
-        │                   │                   │
-        └───────────────────┴───────────────────┘
-                            │
-        ┌───────────────────┴───────────────────┐
-        ▼                                       ▼
-┌──────────────────────┐            ┌──────────────────────┐
-│  LangChain RAG       │            │  ML Models Layer     │
-│  - Vector Store      │            │  - Reranker          │
-│  - Embeddings        │            │  - Classifier        │
-│  - Retrieval Chain   │            │  - Fine-tuned LLM    │
-└──────────────────────┘            └──────────────────────┘
+
+                    LangSmith Layer                      
+          (Tracing, Evaluation, Monitoring)              
+
+                            
+
+                  LangGraph Orchestrator                 
+           (State Machine for Agent Routing)             
+                                                         
+                    
+   Router  > Parallel >Synthesis           
+    Node       Execution        Node             
+                    
+
+                            
+        
+                                              
+        
+   Market           Operations        Financial   
+   Agent              Agent             Agent     
+ + RAG + ML         + RAG + ML        + RAG + ML  
+        
+                                              
+        
+                            
+        
+                                               
+            
+  LangChain RAG                     ML Models Layer     
+  - Vector Store                    - Reranker          
+  - Embeddings                      - Classifier        
+  - Retrieval Chain                 - Fine-tuned LLM    
+            

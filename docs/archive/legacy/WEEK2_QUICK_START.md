@@ -5,9 +5,9 @@
 
 ---
 
-## 🎉 What's Been Built
+## What's Been Built
 
-### Phase 2 Week 1 ✅
+### Phase 2 Week 1 
 - Vector store (ChromaDB)
 - Research retrieval (Semantic Scholar + arXiv)
 - Research synthesis agent
@@ -15,30 +15,30 @@
 - Orchestrator integration
 - RAG testing complete
 
-### Week 2 Setup ✅
+### Week 2 Setup 
 - **Test query suite**: 25 comprehensive business queries
 - **Evaluation framework**: Full benchmark system with LLM-as-judge
 - **Directory structure**: eval/, models/, scripts/
 
 ---
 
-## 📁 New Files Created
+## New Files Created
 
 ```
 /workspaces/multi_agent_workflow/
-├── eval/
-│   ├── test_queries.json        # 25 test queries
-│   └── benchmark.py             # Evaluation framework (583 lines)
-├── models/                      # For ML models (Week 2B)
-├── scripts/                     # For data export (Week 2B)
-├── PHASE2_TEST_FINDINGS.md      # Test results analysis
-├── WEEK2_PLAN.md                # Detailed implementation plan
-└── WEEK2_QUICK_START.md         # THIS FILE
+ eval/
+    test_queries.json        # 25 test queries
+    benchmark.py             # Evaluation framework (583 lines)
+ models/                      # For ML models (Week 2B)
+ scripts/                     # For data export (Week 2B)
+ PHASE2_TEST_FINDINGS.md      # Test results analysis
+ WEEK2_PLAN.md                # Detailed implementation plan
+ WEEK2_QUICK_START.md         # THIS FILE
 ```
 
 ---
 
-## 🚀 How to Run Evaluations
+## How to Run Evaluations
 
 ### Quick Test (5 queries, ~5 minutes)
 
@@ -85,29 +85,29 @@ Options:
 
 ---
 
-## 📊 What Gets Measured
+## What Gets Measured
 
 ### Performance Metrics
-- ⏱️ **Latency**: Total query time (seconds)
-- 💰 **Cost**: Estimated cost per query (USD)
-- 📝 **Response Length**: Character count
+- ⏱ **Latency**: Total query time (seconds)
+-  **Cost**: Estimated cost per query (USD)
+-  **Response Length**: Character count
 
 ### Citation Metrics
-- 📚 **Citation Count**: Number of citations in response
-- ✅ **Citation Rate**: Percentage of responses with citations
-- 📄 **Has References**: Percentage with References section
+-  **Citation Count**: Number of citations in response
+-  **Citation Rate**: Percentage of responses with citations
+-  **Has References**: Percentage with References section
 
 ### Quality Metrics (LLM-as-Judge)
-- 🎯 **Factuality** (0-1): Accuracy and evidence support
-- 💡 **Helpfulness** (0-1): Actionable and relevant
-- 📋 **Comprehensiveness** (0-1): Covers all aspects
+-  **Factuality** (0-1): Accuracy and evidence support
+-  **Helpfulness** (0-1): Actionable and relevant
+-  **Comprehensiveness** (0-1): Covers all aspects
 
 ### Routing Metrics
-- 🔀 **Routing Accuracy**: Correct agent selection (Jaccard similarity)
+-  **Routing Accuracy**: Correct agent selection (Jaccard similarity)
 
 ---
 
-## 📈 Expected Results
+## Expected Results
 
 ### Baseline (Non-RAG / Phase 1)
 - Latency: 10-25s
@@ -125,15 +125,15 @@ Options:
 
 ---
 
-## 📁 Output Files
+## Output Files
 
 After running, you'll get:
 
 ```bash
 eval/
-├── results_no_rag_20251105_143022.json    # Baseline results
-├── results_rag_20251105_144515.json       # RAG results
-└── test_queries.json                       # Your test suite
+ results_no_rag_20251105_143022.json    # Baseline results
+ results_rag_20251105_144515.json       # RAG results
+ test_queries.json                       # Your test suite
 ```
 
 **Results JSON structure**:
@@ -168,12 +168,12 @@ eval/
 
 ---
 
-## 🎯 Next Steps After Evaluation
+## Next Steps After Evaluation
 
 ### Immediate (After First Run)
-1. ✅ Review results in terminal output
-2. ✅ Check JSON files for detailed metrics
-3. ✅ Verify RAG improvements are statistically significant
+1.  Review results in terminal output
+2.  Check JSON files for detailed metrics
+3.  Verify RAG improvements are statistically significant
 
 ### Week 2 Remaining Tasks
 1. ⏳ Export LangSmith data (scripts/export_langsmith_data.py)
@@ -183,7 +183,7 @@ eval/
 
 ---
 
-## 🧪 Testing Tips
+## Testing Tips
 
 ### For Quick Iteration
 ```bash
@@ -210,7 +210,7 @@ python3
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### "Module not found: eval.benchmark"
 ```bash
@@ -235,7 +235,7 @@ python3 eval/benchmark.py
 
 ---
 
-## 📊 Example Output
+## Example Output
 
 ```
 ======================================================================
@@ -246,11 +246,11 @@ LLM Judge: ON
 
 --- Query 1/5 ---
 [Query 1] How can I improve customer retention for my B2B SaaS prod...
-  ✓ Latency: 35.2s
-  ✓ Agents: ['market', 'operations', 'leadgen']
-  ✓ Citations: 3
-  🔍 Running LLM judge...
-  ✓ Scores: F=0.82, H=0.88, C=0.85
+   Latency: 35.2s
+   Agents: ['market', 'operations', 'leadgen']
+   Citations: 3
+   Running LLM judge...
+   Scores: F=0.82, H=0.88, C=0.85
 
 ... (4 more queries)
 
@@ -260,17 +260,17 @@ BENCHMARK SUMMARY - RAG MODE
 
 Queries: 5/5 successful
 
-📊 Performance Metrics:
+ Performance Metrics:
   Average Latency:        35.4s
   Average Cost:           $0.28
   Average Response Length: 1850 chars
 
-📚 Citation Metrics:
+ Citation Metrics:
   Average Citations:      2.8
   Citation Rate:          80.0%
   Has References:         60.0%
 
-⭐ Quality Metrics (LLM Judge):
+ Quality Metrics (LLM Judge):
   Factuality:             0.83/1.0
   Helpfulness:            0.87/1.0
   Comprehensiveness:      0.84/1.0
@@ -280,15 +280,15 @@ Queries: 5/5 successful
 COMPARISON: RAG vs No RAG
 ======================================================================
 
-📊 Performance:
+ Performance:
   Latency                    12.5s →    35.4s  ↓ 183.2%
   Cost                       $0.12 →    $0.28  ↓ 133.3%
 
-📚 Citations:
+ Citations:
   Citation Count              0.0 →      2.8  ↑ inf%
   Citation Rate               0.0% →    80.0%  ↑ inf%
 
-⭐ Quality:
+ Quality:
   Factuality                 0.72 →     0.83  ↑  15.3%
   Helpfulness                0.76 →     0.87  ↑  14.5%
   Overall Quality            0.73 →     0.85  ↑  16.4%
@@ -298,7 +298,7 @@ COMPARISON: RAG vs No RAG
 
 ---
 
-## 🎯 Success Criteria
+## Success Criteria
 
 **Week 2 Goals**:
 - [x] Test query suite created
@@ -315,7 +315,7 @@ COMPARISON: RAG vs No RAG
 
 ---
 
-## 📝 Notes
+## Notes
 
 - **LLM judge uses GPT-5** - For consistency with system
 - **Caching enabled** - 7-day TTL on research results
@@ -330,7 +330,7 @@ COMPARISON: RAG vs No RAG
 python3 eval/benchmark.py --mode both --num-queries 5
 ```
 
-This will give you baseline data and show if RAG is improving quality! 🚀
+This will give you baseline data and show if RAG is improving quality! 
 
 Done.
 
@@ -377,4 +377,4 @@ Done.
   - Monitoring
   - Deployment
 
-  Week 2: SHIPPED ✅
+  Week 2: SHIPPED 

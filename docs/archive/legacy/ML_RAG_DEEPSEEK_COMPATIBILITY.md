@@ -1,30 +1,30 @@
 # ML Routing + RAG + DeepSeek Compatibility Guide
 
 **Date**: November 8, 2025
-**Status**: ✅ ML Routing Compatible | ⚠️ RAG Needs Update
+**Status**:  ML Routing Compatible |  RAG Needs Update
 **System**: Business Intelligence Orchestrator v2
 
 ---
 
-## 🎯 **Executive Summary**
+## **Executive Summary**
 
 | Component | DeepSeek Compatible? | Status | Action Needed |
 |-----------|---------------------|--------|---------------|
-| **ML Routing Classifier** | ✅ **YES** | Working | None - already compatible |
-| **RAG Paper Retrieval** | ✅ **YES** | Working | None - just API calls |
-| **RAG Synthesis Agent** | ⚠️ **PARTIAL** | Uses GPT-5 | Update to UnifiedLLM |
-| **All 4 Business Agents** | ⚠️ **PARTIAL** | Uses GPT-5 | Update to UnifiedLLM |
+| **ML Routing Classifier** |  **YES** | Working | None - already compatible |
+| **RAG Paper Retrieval** |  **YES** | Working | None - just API calls |
+| **RAG Synthesis Agent** |  **PARTIAL** | Uses GPT-5 | Update to UnifiedLLM |
+| **All 4 Business Agents** |  **PARTIAL** | Uses GPT-5 | Update to UnifiedLLM |
 
 **Quick Answer:**
-- ✅ ML routing works perfectly with DeepSeek (local model, no API dependency)
-- ✅ RAG retrieval works perfectly (Semantic Scholar + arXiv APIs)
-- ⚠️ RAG synthesis needs agent updates (5 min fix)
+-  ML routing works perfectly with DeepSeek (local model, no API dependency)
+-  RAG retrieval works perfectly (Semantic Scholar + arXiv APIs)
+-  RAG synthesis needs agent updates (5 min fix)
 
 ---
 
 ## 1. ML Routing Classifier
 
-### ✅ **100% Compatible - Already Working!**
+### **100% Compatible - Already Working!**
 
 **Why it works:**
 
@@ -52,22 +52,22 @@ class RoutingClassifier:
 ```
 User Query: "How can I improve SaaS pricing?"
     ↓
-┌─────────────────────────────────────────────┐
-│   ML Routing Classifier (Local Model)      │
-│                                             │
-│   Model: sentence-transformers/all-MiniLM  │
-│   Size: 349MB                               │
-│   Location: models/routing_classifier.pkl   │
-│   Training: 125 examples                    │
-│   Accuracy: 77%                             │
-│                                             │
-│   Process:                                  │
-│   1. Encode query to embedding              │
-│   2. Run 4 binary classifiers               │
-│   3. Return agent predictions               │
-│                                             │
-│   Output: ["market", "financial"]           │
-└─────────────────────────────────────────────┘
+
+   ML Routing Classifier (Local Model)      
+                                             
+   Model: sentence-transformers/all-MiniLM  
+   Size: 349MB                               
+   Location: models/routing_classifier.pkl   
+   Training: 125 examples                    
+   Accuracy: 77%                             
+                                             
+   Process:                                  
+   1. Encode query to embedding              
+   2. Run 4 binary classifiers               
+   3. Return agent predictions               
+                                             
+   Output: ["market", "financial"]           
+
     ↓
 Agents execute (can use DeepSeek, GPT-5, or any LLM)
 ```
@@ -87,7 +87,7 @@ Agents execute (can use DeepSeek, GPT-5, or any LLM)
 2. DeepSeek calls (~1-2s each, ~$0.03 total) → agent analysis
 3. **Total**: ~2s, $0.03 per query
 
-**Compatibility**: ✅ **Perfect!** ML routing is completely independent of LLM provider.
+**Compatibility**:  **Perfect!** ML routing is completely independent of LLM provider.
 
 ---
 
@@ -162,7 +162,7 @@ MODEL_STRATEGY=hybrid  # Agents use DeepSeek
 # 3. Total: Fast + cheap!
 ```
 
-**Status**: ✅ **Already working perfectly with DeepSeek!**
+**Status**:  **Already working perfectly with DeepSeek!**
 
 ---
 
@@ -173,49 +173,49 @@ MODEL_STRATEGY=hybrid  # Agents use DeepSeek
 ```
 User Query: "How can I improve SaaS retention?"
     ↓
-┌─────────────────────────────────────────────────────────┐
-│   Step 1: Research Retrieval (API Calls)               │
-│                                                         │
-│   ✅ Semantic Scholar API                              │
-│      - Search for relevant papers                      │
-│      - Filter by citations, recency                    │
-│      - Status: ✅ Working (DeepSeek compatible)        │
-│                                                         │
-│   ✅ arXiv API                                         │
-│      - Search for academic papers                      │
-│      - Download abstracts                              │
-│      - Status: ✅ Working (DeepSeek compatible)        │
-│                                                         │
-│   Output: [Paper1, Paper2, Paper3]                     │
-└─────────────────────────────────────────────────────────┘
+
+   Step 1: Research Retrieval (API Calls)               
+                                                         
+    Semantic Scholar API                              
+      - Search for relevant papers                      
+      - Filter by citations, recency                    
+      - Status:  Working (DeepSeek compatible)        
+                                                         
+    arXiv API                                         
+      - Search for academic papers                      
+      - Download abstracts                              
+      - Status:  Working (DeepSeek compatible)        
+                                                         
+   Output: [Paper1, Paper2, Paper3]                     
+
     ↓
-┌─────────────────────────────────────────────────────────┐
-│   Step 2: Research Synthesis (LLM Call)                │
-│                                                         │
-│   ⚠️ Currently uses GPT5Wrapper                        │
-│   ✅ Should use UnifiedLLM                             │
-│                                                         │
-│   Input: 3 papers + user query                         │
-│   Process: Synthesize key findings                     │
-│   Output: Research context string                      │
-└─────────────────────────────────────────────────────────┘
+
+   Step 2: Research Synthesis (LLM Call)                
+                                                         
+    Currently uses GPT5Wrapper                        
+    Should use UnifiedLLM                             
+                                                         
+   Input: 3 papers + user query                         
+   Process: Synthesize key findings                     
+   Output: Research context string                      
+
     ↓
-┌─────────────────────────────────────────────────────────┐
-│   Step 3: Agent Execution (LLM Calls)                  │
-│                                                         │
-│   ⚠️ Currently all agents use GPT5Wrapper              │
-│   ✅ Should use UnifiedLLM                             │
-│                                                         │
-│   Agents receive research context + citations          │
-│   Generate analysis with academic backing              │
-└─────────────────────────────────────────────────────────┘
+
+   Step 3: Agent Execution (LLM Calls)                  
+                                                         
+    Currently all agents use GPT5Wrapper              
+    Should use UnifiedLLM                             
+                                                         
+   Agents receive research context + citations          
+   Generate analysis with academic backing              
+
 ```
 
 ---
 
 ### 2.1 RAG Paper Retrieval
 
-**Compatibility**: ✅ **100% Compatible - Already Working!**
+**Compatibility**:  **100% Compatible - Already Working!**
 
 ```python
 # File: src/tools/research_retrieval.py
@@ -249,18 +249,18 @@ class ResearchRetriever:
 ```
 
 **Key points:**
-- ✅ No LLM calls, just HTTP requests
-- ✅ Completely independent of GPT-5/DeepSeek
-- ✅ Works with any synthesis model
-- ✅ 7-day caching reduces API calls by 60%
+-  No LLM calls, just HTTP requests
+-  Completely independent of GPT-5/DeepSeek
+-  Works with any synthesis model
+-  7-day caching reduces API calls by 60%
 
-**Status**: ✅ **Perfect compatibility!** No changes needed.
+**Status**:  **Perfect compatibility!** No changes needed.
 
 ---
 
 ### 2.2 RAG Research Synthesis
 
-**Compatibility**: ⚠️ **PARTIAL - Needs Update**
+**Compatibility**:  **PARTIAL - Needs Update**
 
 **Current implementation:**
 
@@ -269,14 +269,14 @@ class ResearchRetriever:
 
 class ResearchSynthesisAgent:
     def __init__(self):
-        self.gpt5 = GPT5Wrapper()  # ⚠️ Hardcoded to GPT-5!
+        self.gpt5 = GPT5Wrapper()  #  Hardcoded to GPT-5!
         self.retriever = ResearchRetriever()
 
     def synthesize(self, query: str):
         # Retrieve papers (works with any LLM)
         papers = self.retriever.retrieve_papers(query, top_k=3)
 
-        # Synthesize using GPT-5 ⚠️
+        # Synthesize using GPT-5 
         synthesis = self.gpt5.generate(
             instructions=self.system_prompt,
             input_text=f"Papers: {papers}\n\nQuery: {query}"
@@ -296,7 +296,7 @@ from src.unified_llm import UnifiedLLM
 
 class ResearchSynthesisAgent:
     def __init__(self):
-        self.llm = UnifiedLLM(agent_type="research_synthesis")  # ✅ Uses DeepSeek-reasoner!
+        self.llm = UnifiedLLM(agent_type="research_synthesis")  #  Uses DeepSeek-reasoner!
         self.retriever = ResearchRetriever()
 
     def synthesize(self, query: str):
@@ -313,18 +313,18 @@ class ResearchSynthesisAgent:
 ```
 
 **Benefits of using DeepSeek-reasoner for research:**
-- ✅ **Better reasoning**: Reasoner mode provides deeper thinking
-- ✅ **Longer output**: 64K max tokens (vs 8K for chat)
-- ✅ **90% cheaper**: $0.42/1M output vs GPT-5's higher rates
-- ✅ **Citations**: Better at synthesizing academic content
+-  **Better reasoning**: Reasoner mode provides deeper thinking
+-  **Longer output**: 64K max tokens (vs 8K for chat)
+-  **90% cheaper**: $0.42/1M output vs GPT-5's higher rates
+-  **Citations**: Better at synthesizing academic content
 
-**Status**: ⚠️ **Needs 1-line update** (see fix above)
+**Status**:  **Needs 1-line update** (see fix above)
 
 ---
 
 ### 2.3 Agent Integration with RAG
 
-**Compatibility**: ⚠️ **PARTIAL - Needs Update**
+**Compatibility**:  **PARTIAL - Needs Update**
 
 **All 4 agents need updating:**
 
@@ -337,7 +337,7 @@ class ResearchSynthesisAgent:
 
 class MarketAnalysisAgent:
     def __init__(self):
-        self.gpt5 = GPT5Wrapper()  # ⚠️ Hardcoded
+        self.gpt5 = GPT5Wrapper()  #  Hardcoded
 
     def analyze(self, query: str, research_context: str = None):
         response = self.gpt5.generate(...)
@@ -351,7 +351,7 @@ from src.unified_llm import UnifiedLLM
 
 class MarketAnalysisAgent:
     def __init__(self):
-        self.llm = UnifiedLLM(agent_type="market")  # ✅ Uses DeepSeek-chat
+        self.llm = UnifiedLLM(agent_type="market")  #  Uses DeepSeek-chat
 
     def analyze(self, query: str, research_context: str = None):
         # research_context contains citations from RAG
@@ -359,7 +359,7 @@ class MarketAnalysisAgent:
         return response
 ```
 
-**Status**: ⚠️ **Needs updates to 5 files** (2 min each)
+**Status**:  **Needs updates to 5 files** (2 min each)
 
 ---
 
@@ -385,47 +385,47 @@ orchestrator = LangGraphOrchestrator(
 ```
 User: "How can I improve SaaS customer retention?"
     ↓
-┌─────────────────────────────────────────────────────────┐
-│   ML Routing Classifier (Local, 20ms, $0)              │
-│   → Selects: ["market", "operations", "leadgen"]       │
-└─────────────────────────────────────────────────────────┘
+
+   ML Routing Classifier (Local, 20ms, $0)              
+   → Selects: ["market", "operations", "leadgen"]       
+
     ↓
-┌─────────────────────────────────────────────────────────┐
-│   RAG Research Retrieval (APIs, ~10s, $0)              │
-│   → Semantic Scholar: 2 papers                          │
-│   → arXiv: 1 paper                                      │
-│   → Total: 3 papers on SaaS retention                   │
-└─────────────────────────────────────────────────────────┘
+
+   RAG Research Retrieval (APIs, ~10s, $0)              
+   → Semantic Scholar: 2 papers                          
+   → arXiv: 1 paper                                      
+   → Total: 3 papers on SaaS retention                   
+
     ↓
-┌─────────────────────────────────────────────────────────┐
-│   RAG Research Synthesis (DeepSeek-reasoner, ~15s)     │
-│   → Model: deepseek-reasoner                            │
-│   → Input: 3 papers + query                             │
-│   → Output: Synthesized research context                │
-│   → Cost: ~$0.005                                       │
-└─────────────────────────────────────────────────────────┘
+
+   RAG Research Synthesis (DeepSeek-reasoner, ~15s)     
+   → Model: deepseek-reasoner                            
+   → Input: 3 papers + query                             
+   → Output: Synthesized research context                
+   → Cost: ~$0.005                                       
+
     ↓
-┌─────────────────────────────────────────────────────────┐
-│   Agent Execution (DeepSeek-chat, ~2s each)            │
-│                                                         │
-│   Market Agent (DeepSeek-chat, temp=1.3)               │
-│   → Input: query + research context                     │
-│   → Cost: ~$0.007                                       │
-│                                                         │
-│   Operations Agent (DeepSeek-chat, temp=1.0)           │
-│   → Input: query + research context                     │
-│   → Cost: ~$0.007                                       │
-│                                                         │
-│   LeadGen Agent (DeepSeek-chat, temp=1.3)              │
-│   → Input: query + research context                     │
-│   → Cost: ~$0.007                                       │
-└─────────────────────────────────────────────────────────┘
+
+   Agent Execution (DeepSeek-chat, ~2s each)            
+                                                         
+   Market Agent (DeepSeek-chat, temp=1.3)               
+   → Input: query + research context                     
+   → Cost: ~$0.007                                       
+                                                         
+   Operations Agent (DeepSeek-chat, temp=1.0)           
+   → Input: query + research context                     
+   → Cost: ~$0.007                                       
+                                                         
+   LeadGen Agent (DeepSeek-chat, temp=1.3)              
+   → Input: query + research context                     
+   → Cost: ~$0.007                                       
+
     ↓
-┌─────────────────────────────────────────────────────────┐
-│   Final Synthesis (DeepSeek-chat, ~5s)                 │
-│   → Combines all agent outputs                          │
-│   → Cost: ~$0.010                                       │
-└─────────────────────────────────────────────────────────┘
+
+   Final Synthesis (DeepSeek-chat, ~5s)                 
+   → Combines all agent outputs                          
+   → Cost: ~$0.010                                       
+
     ↓
 Final Response with Citations
 
@@ -462,7 +462,7 @@ Total Cost: ~$0.036
 | **GPT-5 + RAG** | $0.35 | $1,050 | $12,600 | - |
 | **DeepSeek + RAG + ML** | $0.036 | $108 | $1,296 | **$11,304/yr** |
 
-**Savings: 90%** 💰
+**Savings: 90%** 
 
 ---
 
@@ -504,7 +504,7 @@ orch = LangGraphOrchestrator(
 )
 
 result = orch.orchestrate('How can I improve SaaS retention?')
-print('✅ ML routing + RAG + DeepSeek working!')
+print(' ML routing + RAG + DeepSeek working!')
 print(f'Agents: {result[\"agents_consulted\"]}')
 print(f'Citations: {\"citation\" in result[\"recommendation\"].lower()}')
 "
@@ -548,9 +548,9 @@ python cli.py
 | **TOTAL** | - | **36s** | **$0.036** |
 
 **Improvements:**
-- ✅ **40% faster** (60s → 36s)
-- ✅ **90% cheaper** ($0.33 → $0.036)
-- ✅ **Same quality** (needs validation)
+-  **40% faster** (60s → 36s)
+-  **90% cheaper** ($0.33 → $0.036)
+-  **Same quality** (needs validation)
 
 ---
 
@@ -560,11 +560,11 @@ python cli.py
 
 | Component | DeepSeek Ready? | Status |
 |-----------|----------------|--------|
-| ML Routing | ✅ YES | Already working |
-| RAG Retrieval | ✅ YES | Already working |
-| RAG Synthesis | ⚠️ NO | Needs 1-line update |
-| All 4 Agents | ⚠️ NO | Need 1-line updates each |
-| Orchestrator | ✅ YES | Works with updated agents |
+| ML Routing |  YES | Already working |
+| RAG Retrieval |  YES | Already working |
+| RAG Synthesis |  NO | Needs 1-line update |
+| All 4 Agents |  NO | Need 1-line updates each |
+| Orchestrator |  YES | Works with updated agents |
 
 ### Action Items
 
@@ -581,13 +581,13 @@ python cli.py
 ### Expected Results
 
 After updates:
-- ✅ ML routing: 20ms, $0
-- ✅ RAG retrieval: 10s, $0
-- ✅ RAG synthesis: 15s, $0.005 (DeepSeek-reasoner)
-- ✅ Agent execution: 6s, $0.021 (DeepSeek-chat)
-- ✅ Synthesis: 5s, $0.010 (DeepSeek-chat)
-- **✅ Total: 36s, $0.036 per query**
-- **✅ 90% cost savings vs GPT-5**
+-  ML routing: 20ms, $0
+-  RAG retrieval: 10s, $0
+-  RAG synthesis: 15s, $0.005 (DeepSeek-reasoner)
+-  Agent execution: 6s, $0.021 (DeepSeek-chat)
+-  Synthesis: 5s, $0.010 (DeepSeek-chat)
+- ** Total: 36s, $0.036 per query**
+- ** 90% cost savings vs GPT-5**
 
 ---
 

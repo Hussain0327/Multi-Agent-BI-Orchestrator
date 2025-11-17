@@ -1,6 +1,6 @@
 gpt-5-nano
 GPT-5 parameter compatibility
-⚠️ Important: The following parameters are not supported when using GPT-5 models (e.g. gpt-5, gpt-5-mini, gpt-5-nano):
+ Important: The following parameters are not supported when using GPT-5 models (e.g. gpt-5, gpt-5-mini, gpt-5-nano):
 
 temperature
 top_p
