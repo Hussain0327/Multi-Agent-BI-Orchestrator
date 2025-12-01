@@ -1,4 +1,3 @@
-"""Unit tests for ML routing classifier."""
 
 import unittest
 import os

@@ -1,4 +1,3 @@
-"""Unit tests for A/B testing framework."""
 
 import unittest
 import os

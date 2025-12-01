@@ -89,32 +89,6 @@ uvicorn src.main:app --reload
 - DeepSeek API key (optional, for cost savings)
 - LangSmith API key (optional, for tracing)
 
----
-
-## Documentation
-
-Complete documentation is organized in the `docs/` folder:
-
-### Essential Reading
-
-- **[docs/core/INDEX.md](docs/core/INDEX.md)** - Master documentation map (start here)
-- **[docs/core/PROJECT_STATUS.md](docs/core/PROJECT_STATUS.md)** - Current system status and capabilities
-- **[docs/core/QUICK_REFERENCE.md](docs/core/QUICK_REFERENCE.md)** - Commands, configs, and quick answers
-
-### Feature Guides
-
-- **[docs/features/DOCUMENT_AUTOMATION.md](docs/features/DOCUMENT_AUTOMATION.md)** - PowerPoint + Excel generation
-- **[docs/features/PARALLEL_EXECUTION.md](docs/features/PARALLEL_EXECUTION.md)** - Performance optimization (2.1x speedup)
-- **[docs/features/CACHING_LAYER.md](docs/features/CACHING_LAYER.md)** - Redis caching (60-138x speedup)
-- **[docs/features/DEEPSEEK_INTEGRATION.md](docs/features/DEEPSEEK_INTEGRATION.md)** - Cost savings (90% reduction)
-- **[docs/features/RAG_SYSTEM.md](docs/features/RAG_SYSTEM.md)** - Research augmentation
-
-### How-To Guides
-
-- **[docs/guides/DEVELOPMENT_TIMELINE.md](docs/guides/DEVELOPMENT_TIMELINE.md)** - Complete project history
-- **[docs/guides/API_REFERENCE.md](docs/guides/API_REFERENCE.md)** - API endpoints and usage
-- **[docs/guides/DEPLOYMENT_GUIDE.md](docs/guides/DEPLOYMENT_GUIDE.md)** - Production deployment
-- **[docs/guides/TROUBLESHOOTING.md](docs/guides/TROUBLESHOOTING.md)** - Common issues and solutions
 
 ---
 
