@@ -584,6 +584,14 @@ mypy src/ --ignore-missing-imports
 
 ---
 
+## AI-Assisted Development
+
+**Built with**: Claude AI (Anthropic)  
+**Helped with**: SetFit ML-router, code architecture, debugging, documentation  
+**Why**: Ship faster by leveraging the right tools.
+
+---
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
