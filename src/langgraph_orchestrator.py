@@ -214,14 +214,61 @@ class LangGraphOrchestrator:
             print('  No agents selected - skipping agent execution')
             return state
         print(f' Parallel Execution: {len(agents_to_call)} agents running concurrently')
-        import asyncio
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        
+        # Run agents synchronously to avoid asyncio event loop conflicts with FastAPI
+        # This is simpler and works reliably in all environments
         try:
-            state = loop.run_until_complete(self._execute_agents_parallel(state))
-        finally:
-            loop.close()
+            state = self._execute_agents_sync(state)
+        except Exception as e:
+            import traceback
+            print(f'🔥 AGENT EXECUTION ERROR: {type(e).__name__}: {e}')
+            traceback.print_exc()
+            raise
+        
         print('✓ All agents completed')
+        return state
+
+    def _execute_agents_sync(self, state: AgentState) -> AgentState:
+        """Run agents synchronously - simpler and avoids asyncio issues with FastAPI."""
+        agents_to_call = state.get('agents_to_call', [])
+        
+        if 'market' in agents_to_call:
+            web_results = state.get('web_research')
+            if not web_results:
+                web_results = self.web_research.execute(state['query'])
+            research_context = state.get('research_context', '')
+            analysis = self.market_agent.analyze(
+                query=state['query'],
+                web_research_results=web_results,
+                research_context=research_context
+            )
+            state['market_analysis'] = analysis
+            state['web_research'] = web_results
+            
+        if 'operations' in agents_to_call:
+            research_context = state.get('research_context', '')
+            audit = self.operations_agent.audit(
+                query=state['query'],
+                research_context=research_context
+            )
+            state['operations_audit'] = audit
+            
+        if 'financial' in agents_to_call:
+            research_context = state.get('research_context', '')
+            modeling = self.financial_agent.model_financials(
+                query=state['query'],
+                research_context=research_context
+            )
+            state['financial_modeling'] = modeling
+            
+        if 'leadgen' in agents_to_call:
+            research_context = state.get('research_context', '')
+            strategy = self.lead_gen_agent.generate_strategy(
+                query=state['query'],
+                research_context=research_context
+            )
+            state['lead_generation'] = strategy
+            
         return state
 
     @traceable(name='synthesis_node')

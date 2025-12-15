@@ -21,7 +21,11 @@
 - Retrieves academic papers from Semantic Scholar and arXiv with proper citations
 - Routes queries between DeepSeek and GPT-5 to cut costs by 86%
 - Auto-generates PowerPoint decks and Excel workbooks from single queries
-- 2.1x speedup with parallel execution, 138x speedup on cache hits
+- **NEW: Visual Command Center** for real-time agent monitoring
+
+![Dashboard Preview](docs/screenshots/dashboard_preview.png)
+
+[![CI](https://github.com/Hussain0327/Langgraph-bi-agent-orchestrator/actions/workflows/ci.yml/badge.svg)](https://github.com/Hussain0327/Langgraph-bi-agent-orchestrator/actions/workflows/ci.yml)
 
 ---
 
@@ -95,7 +99,25 @@ docker-compose up
 # Access API at http://localhost:8000/docs
 ```
 
-### Option 2: Local Python
+# Access API at http://localhost:8000/docs
+```
+
+### Option 2: Visual Command Center (Frontend)
+
+```bash
+# Navigate to frontend
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Open http://localhost:3000
+```
+
+### Option 3: Local Python
 
 ```bash
 # Install dependencies

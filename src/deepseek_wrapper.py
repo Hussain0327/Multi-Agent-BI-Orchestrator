@@ -11,6 +11,10 @@ class DeepSeekWrapper:
         self.is_reasoner = 'reasoner' in model.lower()
 
     def generate(self, messages: List[Dict[str, str]]=None, input_text: str=None, instructions: str=None, temperature: float=None, max_tokens: int=None, stream: bool=False, tools: List[Dict[str, Any]]=None, **kwargs) -> str:
+        # MOCK MODE: Intercept calls if using a dummy key
+        if Config.DEEPSEEK_API_KEY.startswith("sk-demo"):
+            return self._generate_mock(messages, input_text, instructions)
+
         if messages is None:
             messages = []
             if instructions:
@@ -35,6 +39,19 @@ class DeepSeekWrapper:
                 return content
         except Exception as e:
             return f'DeepSeek API Error: {str(e)}'
+
+    def _generate_mock(self, messages: List[Dict[str, str]], input_text: str, instructions: str) -> str:
+        """Generates mock responses for DeepSeek agents."""
+        import time
+        time.sleep(1.0) # Simulate thinking
+        
+        # DeepSeek often handles specific agent roles in hybrid mode
+        content = (input_text or "") + " " + str(messages)
+
+        if "research_synthesis" in str(self.model) or "research" in content.lower():
+             return "## Academic Research (DeepSeek Mock)\n\n**Paper**: *State of Enterprise AI 2025* (IEEE)\n**abstract**: Analysis of 500 companies shows 40% efficiency gains from agentic workflows.\n\n**Relevance**: High. Supports the business case for automation."
+        
+        return "## DeepSeek Analysis (Mock)\n\nSimulated reasoning trace:\n1. Query requires market data.\n2. Retrieved 4 simulated sources.\n3. Synthesizing insights...\n\n**Output**: Validated the market entry strategy with 85% confidence score."
 
     def _log_usage(self, usage):
         input_tokens = getattr(usage, 'prompt_tokens', 0)

@@ -11,6 +11,10 @@ class GPT5Wrapper:
         self.is_gpt5 = Config.is_gpt5()
 
     def generate(self, messages: List[Dict[str, str]]=None, input_text: str=None, instructions: str=None, reasoning_effort: str=None, text_verbosity: str=None, max_output_tokens: int=None, tools: List[Dict[str, Any]]=None) -> str:
+        # MOCK MODE: Intercept calls if using a dummy key
+        if Config.OPENAI_API_KEY.startswith("sk-demo"):
+            return self._generate_mock(messages, input_text, instructions, tools)
+
         try:
             if self.is_gpt5:
                 return self._generate_gpt5(messages=messages, input_text=input_text, instructions=instructions, reasoning_effort=reasoning_effort or Config.REASONING_EFFORT, text_verbosity=text_verbosity or Config.TEXT_VERBOSITY, max_output_tokens=max_output_tokens or Config.MAX_OUTPUT_TOKENS, tools=tools)
@@ -18,6 +22,41 @@ class GPT5Wrapper:
                 return self._generate_chat_completions(messages=messages, max_tokens=max_output_tokens or Config.MAX_OUTPUT_TOKENS, tools=tools)
         except Exception as e:
             return f'Error generating response: {str(e)}'
+
+    def _generate_mock(self, messages: List[Dict[str, str]], input_text: str, instructions: str, tools: List[Dict[str, Any]]) -> str:
+        """Generates context-aware mock responses for portfolio demo."""
+        import json
+        import time
+        
+        # Simulate network latency for realism
+        time.sleep(1.5)
+
+        # Detect intent based on content
+        content = (input_text or "") + " " + str(messages)
+        
+        # 1. Complexity Classifier Mock
+        if "classify" in content.lower() and "complexity" in content.lower():
+            return "business"
+
+        # 2. Router Mock (JSON Array)
+        if "json array" in content.lower() and "agents" in content.lower():
+            return json.dumps(["market", "financial", "operations", "leadgen"])
+
+        # 3. Agent Research Mocks (Markdown)
+        if "market analysis" in content.lower():
+            return "## Market Analysis (Mock)\n\nBased on simulated data, the market is growing at a CAGR of 12%.\n\n### Key Trends\n- **AI Adoption**: Increasing rapidly across sectors.\n- **Cost Efficiency**: Primary driver for Q3 investments.\n\n*Source: Simulated Portfolio Data*"
+        
+        if "financial modeling" in content.lower():
+            return "## Financial Projections (Mock)\n\n| Year | Revenue ($M) | Growth (%) |\n|------|--------------|------------|\n| 2024 | 50.0         | -          |\n| 2025 | 65.0         | 30%        |\n| 2026 | 82.5         | 27%        |\n\n**Conclusion**: Strong upward trajectory predicted."
+
+        if "operations audit" in content.lower():
+            return "## Operations Audit (Mock)\n\n- **Bottleneck Identified**: Supply chain latency in APAC region.\n- **Recommendation**: Diversify supplier base to reduce risk by 25%."
+
+        if "lead generation" in content.lower():
+            return "## Potential Leads (Mock)\n\n1. **Acme Corp** (Retail) - High Intent\n2. **Stark Industries** (Tech) - Medium Intent\n3. **Wayne Enterprises** (Defense) - Low Intent"
+
+        # 4. Final Synthesis Mock
+        return "# Executive Summary (Simulated)\n\nThis is a **mock response** generated because the application is running in **Portfolio Demo Mode** (using a dummy API key).\n\nThe multi-agent system successfully 'analyzed' your query, routed it to specialized agents, and synthesized this report.\n\n## Key Findings\n- **Market**: Strong growth potential detected.\n- **Finance**: 30% projected revenue increase.\n- **Strategy**: Recommended to proceed with aggressive expansion.\n\n*Note: To get real AI responses, please configure a valid OPENAI_API_KEY in the .env file.*"
 
     def _generate_gpt5(self, messages: List[Dict[str, str]]=None, input_text: str=None, instructions: str=None, reasoning_effort: str='medium', text_verbosity: str='medium', max_output_tokens: int=2000, tools: List[Dict[str, Any]]=None) -> str:
         if input_text is None and messages:
